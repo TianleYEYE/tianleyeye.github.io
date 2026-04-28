@@ -12,10 +12,19 @@
   </head>
   <body>
     <canvas class="shader-field" aria-hidden="true"></canvas>
+    <canvas class="cursor-flow" aria-hidden="true"></canvas>
+    <div class="scroll-progress" aria-hidden="true"></div>
+    <div class="cursor-ring" aria-hidden="true"></div>
     <div class="cursor-light" aria-hidden="true"></div>
+    <div class="section-orbit" aria-hidden="true">
+      <span data-orbit-dot="home"></span>
+      <span data-orbit-dot="about"></span>
+      <span data-orbit-dot="work"></span>
+      <span data-orbit-dot="contact"></span>
+    </div>
     <aside class="time-control" aria-label="主题时间控制">
       <label for="theme-hour">主题时间</label>
-      <input id="theme-hour" type="range" min="0" max="23.75" step="0.25" autocomplete="off" />
+      <input id="theme-hour" type="range" min="0" max="23.983333" step="0.016667" autocomplete="off" />
       <output for="theme-hour" data-theme-time>--:00</output>
     </aside>
 
@@ -29,19 +38,21 @@
     </header>
 
     <main id="home">
-      <section class="hero">
-        <div class="hero-copy">
+      <section class="hero" data-section="home">
+        <div class="hero-copy" data-reveal>
           <p class="eyebrow">个人网站</p>
-          <h1>你好，我是 Tian Le。</h1>
+          <h1 class="glitch-title" data-text="你好，我是 Tian Le。">
+            你好，我是 Tian Le。
+          </h1>
           <p class="lead">
             这里是一个简洁的个人主页，用来记录我的学习、项目、研究兴趣和最近在做的事情。
           </p>
           <div class="actions">
-            <a class="button primary" href="#work">查看项目</a>
-            <a class="button secondary" href="#contact">联系我</a>
+            <a class="button primary" href="#work" data-magnetic>查看项目</a>
+            <a class="button secondary" href="#contact" data-magnetic>联系我</a>
           </div>
         </div>
-        <div class="portrait" data-tilt aria-label="Tian Le 的 GitHub 头像">
+        <div class="portrait" data-tilt data-reveal aria-label="Tian Le 的 GitHub 头像">
           <img
             src="https://github.com/TianleYEYE.png"
             alt="Tian Le 的 GitHub 头像"
@@ -49,12 +60,12 @@
         </div>
       </section>
 
-      <section id="about" class="section">
-        <div class="section-heading">
+      <section id="about" class="section" data-section="about">
+        <div class="section-heading" data-reveal>
           <p class="eyebrow">About</p>
           <h2>关于我</h2>
         </div>
-        <div class="about-grid">
+        <div class="about-grid" data-reveal>
           <p>
             我关注技术、创作和长期积累。这个网站会逐步更新为个人介绍、作品集、笔记和联系方式的入口。
           </p>
@@ -67,23 +78,23 @@
         </div>
       </section>
 
-      <section id="work" class="section">
-        <div class="section-heading">
+      <section id="work" class="section" data-section="work">
+        <div class="section-heading" data-reveal>
           <p class="eyebrow">Work</p>
           <h2>项目与记录</h2>
         </div>
         <div class="project-grid">
-          <article class="project-card" data-tilt>
+          <article class="project-card" data-tilt data-reveal>
             <h3>个人主页</h3>
             <p>一个干净、轻量、适合 GitHub Pages 托管的个人网站。</p>
             <span>Website</span>
           </article>
-          <article class="project-card" data-tilt>
+          <article class="project-card" data-tilt data-reveal>
             <h3>学习笔记</h3>
             <p>整理课程、阅读、实验和技术实践中的关键收获。</p>
             <span>Notes</span>
           </article>
-          <article class="project-card" data-tilt>
+          <article class="project-card" data-tilt data-reveal>
             <h3>作品集</h3>
             <p>用于展示之后完成的应用、研究、设计或开源项目。</p>
             <span>Portfolio</span>
@@ -91,18 +102,19 @@
         </div>
       </section>
 
-      <section id="contact" class="section contact-section">
-        <div>
+      <section id="contact" class="section contact-section" data-section="contact">
+        <div data-reveal>
           <p class="eyebrow">Contact</p>
           <h2>保持联系</h2>
           <p>如果你想联系我，可以通过下面的邮箱发送邮件。</p>
         </div>
-        <div class="contact-links">
-          <a href="mailto:3484768630@qq.com" data-copy-email>3484768630@qq.com</a>
+        <div class="contact-links" data-reveal>
+          <a href="mailto:3484768630@qq.com" data-copy-email data-magnetic>3484768630@qq.com</a>
           <a
             href="https://space.bilibili.com/436533503?spm_id_from=333.1007.0.0"
             target="_blank"
             rel="noreferrer"
+            data-magnetic
           >
             Bilibili
           </a>

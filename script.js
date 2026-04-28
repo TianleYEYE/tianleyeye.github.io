@@ -1,13 +1,25 @@
 const year = document.querySelector("#year");
 const cursorLight = document.querySelector(".cursor-light");
+const cursorRing = document.querySelector(".cursor-ring");
+const cursorFlowCanvas = document.querySelector(".cursor-flow");
 const emailLink = document.querySelector("[data-copy-email]");
 const tiltItems = document.querySelectorAll("[data-tilt]");
+const revealItems = document.querySelectorAll("[data-reveal]");
+const magneticItems = document.querySelectorAll("[data-magnetic]");
+const interactiveItems = document.querySelectorAll("a, button, input, [data-tilt]");
+const sectionItems = document.querySelectorAll("[data-section]");
+const orbitDots = document.querySelectorAll("[data-orbit-dot]");
 const shaderCanvas = document.querySelector(".shader-field");
 const themeHourInput = document.querySelector("#theme-hour");
 const themeTimeOutput = document.querySelector("[data-theme-time]");
+const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
 const pointer = {
   x: 0.5,
   y: 0.45,
+  px: 0,
+  py: 0,
+  speed: 0,
+  hasMoved: false,
 };
 
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
@@ -265,31 +277,53 @@ const getReadableColors = (hour) => {
   return themeKeyframes.night.css;
 };
 
-const getInitialHour = () => {
+const getSystemHour = () => {
+  const now = new Date();
+  return now.getHours() + now.getMinutes() / 60;
+};
+
+const getInitialTheme = () => {
   const params = new URLSearchParams(window.location.search);
   const forcedHour = Number(params.get("hour"));
   const forcedTheme = params.get("theme");
 
-  if (Number.isFinite(forcedHour) && forcedHour >= 0 && forcedHour <= 23.75) {
-    return forcedHour;
+  if (Number.isFinite(forcedHour) && forcedHour >= 0 && forcedHour < 24) {
+    return {
+      followsSystemTime: false,
+      hour: forcedHour,
+    };
   }
 
   if (forcedTheme === "day") {
-    return 12;
+    return {
+      followsSystemTime: false,
+      hour: 12,
+    };
   }
 
   if (forcedTheme === "dusk") {
-    return 17;
+    return {
+      followsSystemTime: false,
+      hour: 17,
+    };
   }
 
   if (forcedTheme === "night") {
-    return 22;
+    return {
+      followsSystemTime: false,
+      hour: 22,
+    };
   }
 
-  return new Date().getHours();
+  return {
+    followsSystemTime: true,
+    hour: getSystemHour(),
+  };
 };
 
-let selectedHour = getInitialHour();
+const initialTheme = getInitialTheme();
+let followsSystemTime = initialTheme.followsSystemTime;
+let selectedHour = initialTheme.hour;
 let visualTheme = getThemeName(selectedHour);
 let themeState = getThemeState(selectedHour);
 
@@ -323,8 +357,9 @@ const applyVisualTheme = () => {
   );
 
   if (themeTimeOutput) {
-    const hour = Math.floor(selectedHour);
-    const minutes = Math.round((selectedHour - hour) * 60);
+    const totalMinutes = Math.round(selectedHour * 60) % (24 * 60);
+    const hour = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
     themeTimeOutput.textContent = `${String(hour).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
   }
 };
@@ -332,6 +367,7 @@ const applyVisualTheme = () => {
 if (themeHourInput) {
   themeHourInput.valueAsNumber = selectedHour;
   themeHourInput.addEventListener("input", () => {
+    followsSystemTime = false;
     selectedHour = themeHourInput.valueAsNumber;
     applyVisualTheme();
   });
@@ -343,18 +379,70 @@ if (themeHourInput) {
 
 applyVisualTheme();
 
+window.setInterval(() => {
+  if (!followsSystemTime) return;
+
+  selectedHour = getSystemHour();
+  if (themeHourInput) {
+    themeHourInput.valueAsNumber = selectedHour;
+  }
+  applyVisualTheme();
+}, 30000);
+
+if (finePointer.matches) {
+  document.documentElement.classList.add("has-fine-pointer");
+}
+
 if (year) {
   year.textContent = String(new Date().getFullYear());
 }
 
+let flowPushPoint = null;
+
+const updateSpot = (event, item) => {
+  const rect = item.getBoundingClientRect();
+  item.style.setProperty("--spot-x", `${event.clientX - rect.left}px`);
+  item.style.setProperty("--spot-y", `${event.clientY - rect.top}px`);
+};
+
+const updateScrollProgress = () => {
+  const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+  const progress = clamp(window.scrollY / maxScroll);
+  document.documentElement.style.setProperty("--scroll-progress", progress.toFixed(4));
+};
+
+const setActiveSection = (sectionId) => {
+  orbitDots.forEach((dot) => {
+    dot.classList.toggle("is-active", dot.dataset.orbitDot === sectionId);
+  });
+};
+
+updateScrollProgress();
+setActiveSection("home");
+
 window.addEventListener("pointermove", (event) => {
+  const dx = pointer.hasMoved ? event.clientX - pointer.px : 0;
+  const dy = pointer.hasMoved ? event.clientY - pointer.py : 0;
   pointer.x = event.clientX / window.innerWidth;
   pointer.y = event.clientY / window.innerHeight;
+  pointer.speed = Math.min(1, Math.hypot(dx, dy) / 52);
+  pointer.px = event.clientX;
+  pointer.py = event.clientY;
+  pointer.hasMoved = true;
+  document.documentElement.style.setProperty("--hero-shift-x", `${((0.5 - pointer.x) * 1).toFixed(3)}rem`);
+  document.documentElement.style.setProperty("--hero-shift-y", `${((0.5 - pointer.y) * 0.8).toFixed(3)}rem`);
 
   if (cursorLight) {
     cursorLight.style.setProperty("--x", `${event.clientX}px`);
     cursorLight.style.setProperty("--y", `${event.clientY}px`);
   }
+
+  if (cursorRing) {
+    cursorRing.style.setProperty("--x", `${event.clientX}px`);
+    cursorRing.style.setProperty("--y", `${event.clientY}px`);
+  }
+
+  flowPushPoint?.(event.clientX, event.clientY, pointer.speed);
 });
 
 tiltItems.forEach((item) => {
@@ -365,6 +453,7 @@ tiltItems.forEach((item) => {
 
     item.style.setProperty("--ry", `${x * 9}deg`);
     item.style.setProperty("--rx", `${y * -9}deg`);
+    updateSpot(event, item);
   });
 
   item.addEventListener("pointerleave", () => {
@@ -372,6 +461,66 @@ tiltItems.forEach((item) => {
     item.style.setProperty("--ry", "0deg");
   });
 });
+
+magneticItems.forEach((item) => {
+  item.addEventListener("pointermove", (event) => {
+    if (!finePointer.matches) return;
+
+    const rect = item.getBoundingClientRect();
+    const x = event.clientX - rect.left - rect.width / 2;
+    const y = event.clientY - rect.top - rect.height / 2;
+    item.style.transform = `translate(${x * 0.16}px, ${y * 0.2}px)`;
+    updateSpot(event, item);
+  });
+
+  item.addEventListener("pointerleave", () => {
+    item.style.transform = "";
+  });
+
+  item.addEventListener("pointerdown", () => {
+    item.classList.remove("is-rippling");
+    void item.offsetWidth;
+    item.classList.add("is-rippling");
+  });
+});
+
+interactiveItems.forEach((item) => {
+  item.addEventListener("pointerenter", () => cursorRing?.classList.add("is-active"));
+  item.addEventListener("pointerleave", () => cursorRing?.classList.remove("is-active"));
+});
+
+window.addEventListener("scroll", updateScrollProgress, { passive: true });
+window.addEventListener("resize", updateScrollProgress);
+
+if ("IntersectionObserver" in window) {
+  const revealObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        entry.target.classList.toggle("is-visible", entry.isIntersecting);
+      });
+    },
+    { threshold: 0.2, rootMargin: "0px 0px -10% 0px" },
+  );
+
+  revealItems.forEach((item) => revealObserver.observe(item));
+
+  const sectionObserver = new IntersectionObserver(
+    (entries) => {
+      const visibleEntry = entries
+        .filter((entry) => entry.isIntersecting)
+        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+      if (visibleEntry?.target.dataset.section) {
+        setActiveSection(visibleEntry.target.dataset.section);
+      }
+    },
+    { threshold: [0.28, 0.46, 0.64] },
+  );
+
+  sectionItems.forEach((section) => sectionObserver.observe(section));
+} else {
+  revealItems.forEach((item) => item.classList.add("is-visible"));
+}
 
 if (emailLink) {
   emailLink.addEventListener("click", async () => {
@@ -385,6 +534,207 @@ if (emailLink) {
       emailLink.classList.remove("is-copied");
     }
   });
+}
+
+if (cursorFlowCanvas && finePointer.matches) {
+  const flowContext = cursorFlowCanvas.getContext("2d", { alpha: true });
+  const reduceFlowMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const trail = [];
+  const brush = {
+    x: 0,
+    y: 0,
+    targetX: 0,
+    targetY: 0,
+    lastX: 0,
+    lastY: 0,
+    speed: 0,
+    active: false,
+  };
+  let flowWidth = 0;
+  let flowHeight = 0;
+  let flowScale = 1;
+  let lastFlowTime = 0;
+  let idleFrames = 0;
+
+  const resizeFlowCanvas = () => {
+    flowScale = Math.min(window.devicePixelRatio || 1, 2);
+    flowWidth = window.innerWidth;
+    flowHeight = window.innerHeight;
+    cursorFlowCanvas.width = Math.floor(flowWidth * flowScale);
+    cursorFlowCanvas.height = Math.floor(flowHeight * flowScale);
+    cursorFlowCanvas.style.width = `${flowWidth}px`;
+    cursorFlowCanvas.style.height = `${flowHeight}px`;
+    flowContext.setTransform(flowScale, 0, 0, flowScale, 0, 0);
+  };
+
+  flowPushPoint = (x, y, speed) => {
+    const targetJump = brush.active ? Math.hypot(x - brush.targetX, y - brush.targetY) / 46 : 0;
+    brush.targetX = x;
+    brush.targetY = y;
+    brush.speed = Math.max(brush.speed * 0.72, speed, Math.min(1, targetJump), 0.16);
+
+    if (!brush.active) {
+      brush.x = x;
+      brush.y = y;
+      brush.lastX = x;
+      brush.lastY = y;
+      brush.active = true;
+    }
+  };
+
+  const flowColor = (index, alpha) => {
+    const hue = 178 + Math.sin(index * 0.74) * 78 + Math.cos(index * 0.31) * 42;
+    return `hsla(${Math.round(hue)}, 92%, 72%, ${alpha})`;
+  };
+
+  const addFlowSample = (x, y, speed, time) => {
+    const prev = trail.at(-1);
+    const angle = prev ? Math.atan2(y - prev.y, x - prev.x) : 0;
+    const energy = clamp(speed, 0.16, 0.92);
+    const phase = Math.sin(x * 0.018 + y * 0.013 + time * 0.002);
+
+    trail.push({
+      x,
+      y,
+      angle,
+      born: time,
+      life: 760 + energy * 520,
+      width: 22 + energy * 34,
+      energy,
+      phase,
+    });
+
+    while (trail.length > 74) {
+      trail.shift();
+    }
+  };
+
+  const getAliveTrail = (time) => {
+    const aliveTrail = [];
+
+    for (let i = trail.length - 1; i >= 0; i -= 1) {
+      if ((time - trail[i].born) / trail[i].life >= 1) {
+        trail.splice(i, 1);
+      } else {
+        aliveTrail.unshift(trail[i]);
+      }
+    }
+
+    return aliveTrail;
+  };
+
+  const drawOilFilmBand = (alivePoints, time, pass) => {
+    if (alivePoints.length < 2) return;
+
+    for (let i = 1; i < alivePoints.length; i += 1) {
+      const prev = alivePoints[i - 1];
+      const point = alivePoints[i];
+      const progress = clamp((time - point.born) / point.life);
+      const ageFade = Math.pow(1 - progress, 1.45);
+      const alpha = ageFade * (0.08 + point.energy * 0.11) * pass.alpha;
+      const segmentAngle = Math.atan2(point.y - prev.y, point.x - prev.x);
+      const normalX = Math.cos(segmentAngle + Math.PI / 2);
+      const normalY = Math.sin(segmentAngle + Math.PI / 2);
+      const shimmer = Math.sin(time * 0.004 + point.phase + i * 0.52) * pass.ripple;
+      const offset = pass.offset + shimmer;
+      const startX = prev.x + normalX * offset;
+      const startY = prev.y + normalY * offset;
+      const endX = point.x + normalX * offset;
+      const endY = point.y + normalY * offset;
+      const midX = (startX + endX) / 2 + normalX * shimmer * 0.42;
+      const midY = (startY + endY) / 2 + normalY * shimmer * 0.42;
+
+      const gradient = flowContext.createLinearGradient(
+        startX - normalX * point.width,
+        startY - normalY * point.width,
+        endX + normalX * point.width,
+        endY + normalY * point.width,
+      );
+      gradient.addColorStop(0, flowColor(i + pass.hueShift, alpha * 0.25));
+      gradient.addColorStop(0.36, `hsla(${Math.round(260 + Math.sin(point.phase) * 38)}, 92%, 78%, ${alpha})`);
+      gradient.addColorStop(0.68, `hsla(${Math.round(55 + Math.cos(point.phase) * 28)}, 98%, 76%, ${alpha * 0.72})`);
+      gradient.addColorStop(1, flowColor(i + pass.hueShift + 4, alpha * 0.22));
+
+      flowContext.beginPath();
+      flowContext.moveTo(startX, startY);
+      flowContext.quadraticCurveTo(midX, midY, endX, endY);
+      flowContext.lineWidth = Math.max(1, point.width * pass.width * ageFade);
+      flowContext.strokeStyle = gradient;
+      flowContext.stroke();
+    }
+  };
+
+  const drawOilFilmSkin = (alivePoints, time) => {
+    if (alivePoints.length < 3) return;
+
+    flowContext.save();
+    flowContext.globalCompositeOperation = "source-over";
+    flowContext.lineCap = "round";
+    flowContext.lineJoin = "round";
+
+    flowContext.filter = "blur(18px)";
+    drawOilFilmBand(alivePoints, time, { width: 1.75, alpha: 0.36, offset: 0, ripple: 9, hueShift: 0 });
+
+    flowContext.filter = "blur(6px)";
+    drawOilFilmBand(alivePoints, time, { width: 0.88, alpha: 0.52, offset: 0, ripple: 5, hueShift: 3 });
+
+    flowContext.filter = "none";
+    drawOilFilmBand(alivePoints, time, { width: 0.18, alpha: 0.48, offset: -8, ripple: 2.5, hueShift: 8 });
+    drawOilFilmBand(alivePoints, time, { width: 0.14, alpha: 0.4, offset: 9, ripple: 2.5, hueShift: 14 });
+
+    flowContext.restore();
+  };
+
+  const drawCursorFlow = (time = 0) => {
+    const delta = Math.min(34, time - lastFlowTime || 16);
+    lastFlowTime = time;
+
+    flowContext.globalCompositeOperation = "source-over";
+    flowContext.clearRect(0, 0, flowWidth, flowHeight);
+
+    if (brush.active) {
+      const easing = 1 - Math.pow(0.0018, delta / 1000);
+      const prevX = brush.x;
+      const prevY = brush.y;
+      brush.x = mix(brush.x, brush.targetX, easing);
+      brush.y = mix(brush.y, brush.targetY, easing);
+
+      const distance = Math.hypot(brush.x - brush.lastX, brush.y - brush.lastY);
+      const samples = Math.min(8, Math.ceil(distance / 9));
+
+      for (let i = 1; i <= samples; i += 1) {
+        const amount = i / samples;
+        const x = mix(brush.lastX, brush.x, amount);
+        const y = mix(brush.lastY, brush.y, amount);
+        addFlowSample(x, y, brush.speed, time - (samples - i) * 10);
+      }
+
+      brush.lastX = brush.x;
+      brush.lastY = brush.y;
+      brush.speed *= 0.88;
+
+      if (Math.hypot(brush.targetX - brush.x, brush.targetY - brush.y) < 0.35 && brush.speed < 0.02) {
+        idleFrames += 1;
+      } else {
+        idleFrames = 0;
+      }
+
+      if (idleFrames > 80) {
+        brush.active = false;
+        idleFrames = 0;
+      }
+    }
+
+    drawOilFilmSkin(getAliveTrail(time), time);
+
+    if (!reduceFlowMotion.matches) {
+      window.requestAnimationFrame(drawCursorFlow);
+    }
+  };
+
+  resizeFlowCanvas();
+  drawCursorFlow();
+  window.addEventListener("resize", resizeFlowCanvas);
 }
 
 if (shaderCanvas) {

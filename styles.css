@@ -78,6 +78,11 @@ html {
   scroll-behavior: smooth;
 }
 
+html.has-fine-pointer,
+html.has-fine-pointer * {
+  cursor: none;
+}
+
 body {
   margin: 0;
   min-height: 100vh;
@@ -145,6 +150,105 @@ a {
   height: 100vh;
   pointer-events: none;
   filter: saturate(0.78) contrast(1.02);
+}
+
+.cursor-flow {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  opacity: 0;
+  filter: saturate(1.28) contrast(1.02);
+  mix-blend-mode: screen;
+  transition: opacity 220ms ease;
+}
+
+html.has-fine-pointer .cursor-flow {
+  opacity: 0.74;
+}
+
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 40;
+  width: calc(var(--scroll-progress, 0) * 100%);
+  height: 4px;
+  background: linear-gradient(90deg, var(--accent), var(--sun), var(--coral));
+  box-shadow: 0 0 18px var(--cursor-glow);
+  pointer-events: none;
+}
+
+.cursor-ring {
+  --x: 50vw;
+  --y: 50vh;
+  --scale: 1;
+  position: fixed;
+  left: var(--x);
+  top: var(--y);
+  z-index: 60;
+  width: 2.2rem;
+  height: 2.2rem;
+  border: 2px solid rgba(32, 42, 48, 0.72);
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(var(--scale));
+  transition:
+    opacity 180ms ease,
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
+  mix-blend-mode: difference;
+}
+
+html.has-fine-pointer .cursor-ring {
+  opacity: 1;
+}
+
+html.has-fine-pointer .cursor-ring.is-active {
+  --scale: 1.9;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.86);
+}
+
+.section-orbit {
+  position: fixed;
+  left: clamp(0.75rem, 2vw, 1.25rem);
+  top: 50%;
+  z-index: 18;
+  display: grid;
+  gap: 0.8rem;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.section-orbit span {
+  width: 0.65rem;
+  height: 0.65rem;
+  border: 2px solid rgba(32, 42, 48, 0.62);
+  border-radius: 50%;
+  background: var(--surface-strong);
+  box-shadow: 2px 2px 0 rgba(32, 42, 48, 0.48);
+  opacity: 0.58;
+  transform: scale(0.82);
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease,
+    background 180ms ease;
+}
+
+.section-orbit span.is-active {
+  background: var(--coral);
+  opacity: 1;
+  transform: scale(1.28);
+}
+
+body.theme-night .section-orbit span,
+body.theme-night .cursor-ring {
+  border-color: rgba(230, 225, 215, 0.64);
 }
 
 .cursor-light {
@@ -304,6 +408,17 @@ main {
 
 .hero-copy {
   max-width: 44rem;
+  transform: translate3d(var(--hero-shift-x, 0rem), var(--hero-shift-y, 0rem), 0);
+  transition: transform 140ms ease-out;
+}
+
+.hero-copy[data-reveal] {
+  transform: translate3d(
+      var(--hero-shift-x, 0rem),
+      calc(var(--hero-shift-y, 0rem) + var(--reveal-y, 0rem)),
+      0
+    )
+    scale(var(--reveal-scale, 1));
 }
 
 .eyebrow {
@@ -339,6 +454,36 @@ h1 {
   line-height: 0.95;
   letter-spacing: 0;
   text-wrap: balance;
+}
+
+.glitch-title {
+  position: relative;
+}
+
+.glitch-title::before,
+.glitch-title::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.glitch-title::before {
+  color: var(--coral);
+  transform: translate(0.04em, -0.025em);
+}
+
+.glitch-title::after {
+  color: var(--mint);
+  transform: translate(-0.035em, 0.028em);
+}
+
+.glitch-title:hover::before,
+.glitch-title:hover::after {
+  opacity: 0.42;
+  animation: titleGlitch 620ms steps(2, end) infinite;
 }
 
 h2 {
@@ -385,6 +530,34 @@ h3 {
     transform 150ms ease,
     box-shadow 150ms ease,
     background 150ms ease;
+  overflow: hidden;
+  will-change: transform;
+}
+
+.button::after,
+.contact-links a::before {
+  content: "";
+  position: absolute;
+  left: var(--spot-x, 50%);
+  top: var(--spot-y, 50%);
+  width: 9rem;
+  height: 9rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.36), transparent 62%);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.42);
+  transition:
+    opacity 160ms ease,
+    transform 200ms ease;
+  pointer-events: none;
+}
+
+.button:hover::after,
+.button:focus-visible::after,
+.contact-links a:hover::before,
+.contact-links a:focus-visible::before {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
 }
 
 .button:hover,
@@ -430,6 +603,20 @@ body.theme-night .button.secondary {
     box-shadow 180ms ease;
 }
 
+.portrait::after {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  z-index: 2;
+  background: linear-gradient(110deg, transparent 38%, rgba(255, 255, 255, 0.42), transparent 62%);
+  opacity: 0;
+  transform: translateX(-42%) rotate(8deg);
+  transition:
+    opacity 180ms ease,
+    transform 520ms ease;
+  pointer-events: none;
+}
+
 body.theme-night .portrait {
   background:
     linear-gradient(135deg, rgba(70, 83, 102, 0.9), rgba(99, 77, 91, 0.7)),
@@ -438,6 +625,11 @@ body.theme-night .portrait {
 
 .portrait:hover {
   box-shadow: 7px 7px 0 rgba(32, 42, 48, 0.82);
+}
+
+.portrait:hover::after {
+  opacity: 1;
+  transform: translateX(42%) rotate(8deg);
 }
 
 .portrait::before {
@@ -530,9 +722,12 @@ body.theme-night .portrait {
 .project-card {
   --rx: 0deg;
   --ry: 0deg;
+  --spot-x: 50%;
+  --spot-y: 50%;
   min-height: 13rem;
   display: flex;
   flex-direction: column;
+  position: relative;
   padding: 1.25rem;
   box-shadow: 7px 7px 0 rgba(32, 42, 48, 0.82);
   transform: perspective(900px) rotateX(var(--rx)) rotateY(var(--ry));
@@ -540,11 +735,62 @@ body.theme-night .portrait {
     transform 170ms ease,
     box-shadow 170ms ease,
     background 170ms ease;
+  overflow: hidden;
+}
+
+.project-card::before {
+  content: "";
+  position: absolute;
+  left: var(--spot-x);
+  top: var(--spot-y);
+  width: 14rem;
+  height: 14rem;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.08) 36%, transparent 68%);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.7);
+  transition:
+    opacity 160ms ease,
+    transform 220ms ease;
+  pointer-events: none;
+}
+
+.project-card::after {
+  content: "";
+  position: absolute;
+  inset: auto 1.25rem 1.25rem auto;
+  width: 2.2rem;
+  height: 2.2rem;
+  border: 2px solid rgba(32, 42, 48, 0.64);
+  border-radius: 50%;
+  opacity: 0.28;
+  transform: scale(0.8);
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
 }
 
 .project-card:hover {
   background: rgba(251, 249, 241, 0.96);
   box-shadow: 4px 4px 0 rgba(32, 42, 48, 0.82);
+}
+
+.project-card:hover::before {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.project-card:hover::after {
+  opacity: 0.7;
+  transform: scale(1);
+}
+
+.project-card h3,
+.project-card p,
+.project-card span {
+  position: relative;
+  z-index: 1;
 }
 
 .project-card p {
@@ -596,6 +842,8 @@ body.theme-night .portrait {
     transform 150ms ease,
     box-shadow 150ms ease,
     filter 150ms ease;
+  overflow: hidden;
+  will-change: transform;
 }
 
 body.theme-night .contact-links a {
@@ -631,6 +879,79 @@ body.theme-night .contact-links a {
   border-top: 1px solid var(--line);
 }
 
+[data-reveal] {
+  --reveal-y: 4rem;
+  --reveal-scale: 0.82;
+  opacity: 0;
+  transform-origin: 50% 85%;
+  transform: translateY(var(--reveal-y)) scale(var(--reveal-scale));
+  transition:
+    opacity 620ms ease,
+    transform 760ms cubic-bezier(0.16, 1.08, 0.28, 1);
+  will-change: opacity, transform;
+}
+
+[data-reveal].is-visible {
+  --reveal-y: 0rem;
+  --reveal-scale: 1;
+  opacity: 1;
+  transform: translateY(var(--reveal-y)) scale(var(--reveal-scale));
+}
+
+[data-reveal][data-tilt] {
+  transform: perspective(900px) translateY(var(--reveal-y)) scale(var(--reveal-scale)) rotateX(var(--rx)) rotateY(var(--ry));
+}
+
+.portrait[data-reveal],
+.project-card[data-reveal] {
+  transition:
+    opacity 620ms ease,
+    transform 760ms cubic-bezier(0.16, 1.08, 0.28, 1),
+    box-shadow 170ms ease,
+    background 170ms ease;
+}
+
+.project-card:nth-child(2)[data-reveal] {
+  transition-delay: 80ms;
+}
+
+.project-card:nth-child(3)[data-reveal] {
+  transition-delay: 160ms;
+}
+
+.is-rippling {
+  animation: tapPulse 420ms ease;
+}
+
+@keyframes titleGlitch {
+  0%,
+  100% {
+    clip-path: inset(0 0 0 0);
+  }
+
+  35% {
+    clip-path: inset(18% 0 48% 0);
+  }
+
+  70% {
+    clip-path: inset(58% 0 14% 0);
+  }
+}
+
+@keyframes tapPulse {
+  0% {
+    filter: saturate(1);
+  }
+
+  45% {
+    filter: saturate(1.18) brightness(1.04);
+  }
+
+  100% {
+    filter: saturate(1);
+  }
+}
+
 @keyframes gridSlide {
   from {
     background-position: 0 0, 0 0;
@@ -650,9 +971,24 @@ body.theme-night .contact-links a {
     scroll-behavior: auto !important;
     transition-duration: 1ms !important;
   }
+
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 @media (max-width: 760px) {
+  html.has-fine-pointer,
+  html.has-fine-pointer * {
+    cursor: auto;
+  }
+
+  .cursor-ring,
+  .section-orbit {
+    display: none;
+  }
+
   .site-header {
     align-items: flex-start;
     flex-direction: column;
