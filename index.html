@@ -3,16 +3,24 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tianle Ye | 个人网站</title>
+    <title>Tian Le | 个人网站</title>
     <meta
       name="description"
-      content="Tianle Ye 的个人网站，展示个人简介、研究方向、项目和联系方式。"
+      content="Tian Le 的个人网站，展示个人简介、研究方向、项目和联系方式。"
     />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <div class="pixel-world" aria-hidden="true">
+      <span></span>
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    <div class="cursor-light" aria-hidden="true"></div>
+
     <header class="site-header">
-      <a class="brand" href="#home" aria-label="返回首页">Tianle Ye</a>
+      <a class="brand" href="#home" aria-label="返回首页">Tian Le</a>
       <nav class="nav" aria-label="主导航">
         <a href="#about">关于</a>
         <a href="#work">项目</a>
@@ -24,17 +32,23 @@
       <section class="hero">
         <div class="hero-copy">
           <p class="eyebrow">个人网站</p>
-          <h1>你好，我是 Tianle Ye。</h1>
+          <h1>你好，我是 Tian Le。</h1>
           <p class="lead">
             这里是一个简洁的个人主页，用来记录我的学习、项目、研究兴趣和最近在做的事情。
           </p>
           <div class="actions">
             <a class="button primary" href="#work">查看项目</a>
             <a class="button secondary" href="#contact">联系我</a>
+            <button class="button icon-button" type="button" data-toggle-motion>
+              切换节奏
+            </button>
           </div>
         </div>
-        <div class="portrait" aria-label="Tianle Ye 的首字母头像">
-          <span>TY</span>
+        <div class="portrait" data-tilt aria-label="Tian Le 的首字母头像">
+          <span>TL</span>
+          <i></i>
+          <i></i>
+          <i></i>
         </div>
       </section>
 
@@ -62,17 +76,17 @@
           <h2>项目与记录</h2>
         </div>
         <div class="project-grid">
-          <article class="project-card">
+          <article class="project-card" data-tilt>
             <h3>个人主页</h3>
             <p>一个干净、轻量、适合 GitHub Pages 托管的个人网站。</p>
             <span>Website</span>
           </article>
-          <article class="project-card">
+          <article class="project-card" data-tilt>
             <h3>学习笔记</h3>
             <p>整理课程、阅读、实验和技术实践中的关键收获。</p>
             <span>Notes</span>
           </article>
-          <article class="project-card">
+          <article class="project-card" data-tilt>
             <h3>作品集</h3>
             <p>用于展示之后完成的应用、研究、设计或开源项目。</p>
             <span>Portfolio</span>
@@ -84,20 +98,17 @@
         <div>
           <p class="eyebrow">Contact</p>
           <h2>保持联系</h2>
-          <p>
-            你可以把这里替换成邮箱、GitHub、LinkedIn、博客或其他常用链接。
-          </p>
+          <p>如果你想联系我，可以通过下面的邮箱发送邮件。</p>
         </div>
         <div class="contact-links">
-          <a href="mailto:hello@example.com">Email</a>
-          <a href="https://github.com/tianleyeye">GitHub</a>
+          <a href="mailto:3484768630@qq.com" data-copy-email>3484768630@qq.com</a>
         </div>
       </section>
     </main>
 
     <footer class="footer">
       <span id="year"></span>
-      <span>Tianle Ye. Built with care.</span>
+      <span>Tian Le. Built with care.</span>
     </footer>
 
     <script src="script.js"></script>
