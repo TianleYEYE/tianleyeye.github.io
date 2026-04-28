@@ -169,6 +169,15 @@ a {
   pointer-events: none;
 }
 
+html.has-fine-pointer .entry-gate,
+html.has-fine-pointer .entry-gate * {
+  cursor: auto;
+}
+
+html.has-fine-pointer .entry-hold {
+  cursor: pointer;
+}
+
 .entry-hold {
   --entry-progress: 0;
   position: relative;
