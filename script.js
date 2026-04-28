@@ -1,7 +1,7 @@
 const year = document.querySelector("#year");
 const cursorLight = document.querySelector(".cursor-light");
 const cursorRing = document.querySelector(".cursor-ring");
-const cursorFlowCanvas = document.querySelector(".cursor-flow");
+const cursorFlowCanvas = null;
 const emailLink = document.querySelector("[data-copy-email]");
 const tiltItems = document.querySelectorAll("[data-tilt]");
 const revealItems = document.querySelectorAll("[data-reveal]");
@@ -20,6 +20,15 @@ const pointer = {
   py: 0,
   speed: 0,
   hasMoved: false,
+};
+const cursorState = {
+  dotX: window.innerWidth * 0.5,
+  dotY: window.innerHeight * 0.45,
+  outlineX: window.innerWidth * 0.5,
+  outlineY: window.innerHeight * 0.45,
+  angle: 0,
+  stretch: 0,
+  visible: false,
 };
 
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
@@ -438,8 +447,13 @@ window.addEventListener("pointermove", (event) => {
   }
 
   if (cursorRing) {
-    cursorRing.style.setProperty("--x", `${event.clientX}px`);
-    cursorRing.style.setProperty("--y", `${event.clientY}px`);
+    cursorState.dotX = event.clientX;
+    cursorState.dotY = event.clientY;
+    cursorState.angle = Math.atan2(dy, dx);
+    cursorState.stretch = Math.max(cursorState.stretch * 0.62, pointer.speed);
+    cursorState.visible = true;
+    cursorRing.style.setProperty("--dot-x", `${event.clientX}px`);
+    cursorRing.style.setProperty("--dot-y", `${event.clientY}px`);
   }
 
   flowPushPoint?.(event.clientX, event.clientY, pointer.speed);
@@ -488,6 +502,34 @@ interactiveItems.forEach((item) => {
   item.addEventListener("pointerenter", () => cursorRing?.classList.add("is-active"));
   item.addEventListener("pointerleave", () => cursorRing?.classList.remove("is-active"));
 });
+
+window.addEventListener("pointerdown", () => cursorRing?.classList.add("is-pressed"));
+window.addEventListener("pointerup", () => cursorRing?.classList.remove("is-pressed"));
+window.addEventListener("pointercancel", () => cursorRing?.classList.remove("is-pressed"));
+window.addEventListener("blur", () => cursorRing?.classList.remove("is-pressed"));
+
+const animateCursor = () => {
+  if (cursorRing && finePointer.matches) {
+    const follow = cursorState.visible ? 0.105 : 1;
+    cursorState.outlineX = mix(cursorState.outlineX, cursorState.dotX, follow);
+    cursorState.outlineY = mix(cursorState.outlineY, cursorState.dotY, follow);
+    cursorState.stretch *= 0.88;
+
+    const stretch = clamp(cursorState.stretch, 0, 1);
+    const scaleX = 1 + stretch * 0.72;
+    const scaleY = 1 - stretch * 0.34;
+
+    cursorRing.style.setProperty("--outline-x", `${cursorState.outlineX}px`);
+    cursorRing.style.setProperty("--outline-y", `${cursorState.outlineY}px`);
+    cursorRing.style.setProperty("--cursor-angle", `${cursorState.angle}rad`);
+    cursorRing.style.setProperty("--cursor-scale-x", scaleX.toFixed(3));
+    cursorRing.style.setProperty("--cursor-scale-y", scaleY.toFixed(3));
+  }
+
+  window.requestAnimationFrame(animateCursor);
+};
+
+animateCursor();
 
 window.addEventListener("scroll", updateScrollProgress, { passive: true });
 window.addEventListener("resize", updateScrollProgress);
