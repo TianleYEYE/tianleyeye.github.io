@@ -11,13 +11,13 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="pixel-world" aria-hidden="true">
-      <span></span>
-      <span></span>
-      <span></span>
-      <span></span>
-    </div>
+    <canvas class="shader-field" aria-hidden="true"></canvas>
     <div class="cursor-light" aria-hidden="true"></div>
+    <aside class="time-control" aria-label="主题时间控制">
+      <label for="theme-hour">主题时间</label>
+      <input id="theme-hour" type="range" min="0" max="23.75" step="0.25" autocomplete="off" />
+      <output for="theme-hour" data-theme-time>--:00</output>
+    </aside>
 
     <header class="site-header">
       <a class="brand" href="#home" aria-label="返回首页">Tian Le</a>
@@ -115,6 +115,6 @@
       <span>Tian Le. Built with care.</span>
     </footer>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=20260428"></script>
   </body>
 </html>
