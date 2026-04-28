@@ -53,32 +53,32 @@ const hexToRgb = (hex) => {
 const themeKeyframes = {
   day: {
     css: {
-      pageBg: [238, 233, 223],
-      surface: [246, 244, 235, 0.68],
-      surfaceStrong: [251, 249, 241, 0.84],
-      text: [32, 42, 48],
-      muted: [101, 113, 121],
-      line: [32, 42, 48, 0.14],
-      accent: [88, 125, 131],
-      accentStrong: [56, 92, 99],
-      coral: [185, 134, 120],
-      sun: [196, 180, 125],
-      mint: [136, 165, 154],
-      headerBg: [246, 244, 235, 0.76],
-      cursorGlow: [88, 125, 131, 0.18],
+      pageBg: [242, 239, 231],
+      surface: [255, 255, 250, 0.8],
+      surfaceStrong: [255, 255, 250, 0.94],
+      text: [9, 10, 13],
+      muted: [79, 83, 93],
+      line: [9, 10, 13, 0.22],
+      accent: [0, 87, 255],
+      accentStrong: [6, 21, 168],
+      coral: [255, 43, 109],
+      sun: [214, 255, 0],
+      mint: [0, 209, 167],
+      headerBg: [255, 255, 250, 0.84],
+      cursorGlow: [0, 87, 255, 0.22],
     },
     shader: {
-      sky: ["#d9d5cf", "#c4c7ca", "#d1b9ad", "#e8e0d3"],
-      glow: [[215, 169, 139], 0.56, [176, 127, 139], 0.24],
-      body: [[216, 183, 132], 0.78, [174, 112, 132], 0.64],
+      sky: ["#f7f5ef", "#dfe4f5", "#ffe1eb", "#f2efe7"],
+      glow: [[214, 255, 0], 0.34, [255, 43, 109], 0.18],
+      body: [[214, 255, 0], 0.76, [255, 43, 109], 0.6],
       ground: [
-        [63, 72, 82, 0.24],
-        [89, 111, 118, 0.16],
-        [226, 219, 206, 0.1],
+        [9, 10, 13, 0.24],
+        [0, 87, 255, 0.14],
+        [242, 239, 231, 0.1],
       ],
-      grid: [88, 125, 131],
-      lanes: [136, 165, 154],
-      haze: [[219, 176, 153], 0.4, [120, 143, 153], 0.2],
+      grid: [0, 87, 255],
+      lanes: [0, 209, 167],
+      haze: [[255, 43, 109], 0.22, [0, 87, 255], 0.18],
       bodyScale: 0.22,
       bodyY: 0.66,
       starAlpha: 0.12,
@@ -89,32 +89,32 @@ const themeKeyframes = {
   },
   dusk: {
     css: {
-      pageBg: [233, 223, 213],
-      surface: [242, 235, 226, 0.66],
-      surfaceStrong: [248, 242, 233, 0.84],
-      text: [35, 40, 48],
-      muted: [104, 109, 120],
-      line: [35, 40, 48, 0.16],
-      accent: [103, 111, 143],
-      accentStrong: [70, 77, 104],
-      coral: [172, 117, 111],
-      sun: [197, 170, 121],
-      mint: [132, 153, 143],
-      headerBg: [242, 235, 226, 0.78],
-      cursorGlow: [172, 117, 111, 0.18],
+      pageBg: [17, 12, 29],
+      surface: [29, 21, 43, 0.72],
+      surfaceStrong: [41, 31, 60, 0.9],
+      text: [255, 247, 232],
+      muted: [203, 191, 216],
+      line: [255, 247, 232, 0.2],
+      accent: [124, 92, 255],
+      accentStrong: [201, 189, 255],
+      coral: [255, 76, 76],
+      sun: [255, 212, 0],
+      mint: [0, 240, 181],
+      headerBg: [17, 12, 29, 0.82],
+      cursorGlow: [124, 92, 255, 0.24],
     },
     shader: {
-      sky: ["#b9b4bd", "#9ea7b5", "#b88f91", "#dac7b8"],
-      glow: [[196, 151, 126], 0.68, [146, 103, 134], 0.28],
-      body: [[205, 164, 110], 0.86, [150, 88, 125], 0.72],
+      sky: ["#110c1d", "#211a38", "#4f2144", "#181126"],
+      glow: [[255, 212, 0], 0.46, [124, 92, 255], 0.28],
+      body: [[255, 212, 0], 0.82, [255, 76, 76], 0.68],
       ground: [
-        [49, 55, 70, 0.3],
-        [82, 94, 111, 0.2],
-        [210, 197, 184, 0.12],
+        [9, 6, 18, 0.42],
+        [124, 92, 255, 0.2],
+        [17, 12, 29, 0.16],
       ],
-      grid: [103, 111, 143],
-      lanes: [132, 153, 143],
-      haze: [[219, 176, 153], 0.42, [120, 143, 153], 0.22],
+      grid: [124, 92, 255],
+      lanes: [0, 240, 181],
+      haze: [[255, 76, 76], 0.28, [124, 92, 255], 0.24],
       bodyScale: 0.23,
       bodyY: 0.66,
       starAlpha: 0.22,
@@ -125,32 +125,32 @@ const themeKeyframes = {
   },
   night: {
     css: {
-      pageBg: [18, 23, 32],
-      surface: [31, 36, 47, 0.68],
-      surfaceStrong: [38, 43, 55, 0.86],
-      text: [230, 225, 215],
-      muted: [169, 176, 184],
-      line: [230, 225, 215, 0.17],
-      accent: [132, 155, 181],
-      accentStrong: [184, 199, 216],
-      coral: [155, 115, 124],
-      sun: [200, 194, 160],
-      mint: [120, 148, 142],
-      headerBg: [20, 24, 32, 0.78],
-      cursorGlow: [132, 155, 181, 0.2],
+      pageBg: [3, 5, 10],
+      surface: [11, 15, 25, 0.76],
+      surfaceStrong: [16, 22, 36, 0.92],
+      text: [248, 251, 255],
+      muted: [168, 176, 199],
+      line: [248, 251, 255, 0.18],
+      accent: [0, 163, 255],
+      accentStrong: [167, 231, 255],
+      coral: [255, 43, 214],
+      sun: [245, 255, 0],
+      mint: [0, 255, 157],
+      headerBg: [3, 5, 10, 0.82],
+      cursorGlow: [0, 163, 255, 0.28],
     },
     shader: {
-      sky: ["#10151f", "#171d2a", "#25273a", "#141922"],
-      glow: [[196, 202, 190], 0.24, [132, 155, 181], 0.18],
-      body: [[221, 220, 202], 0.86, [163, 176, 194], 0.72],
+      sky: ["#03050a", "#071021", "#1c1338", "#05070d"],
+      glow: [[245, 255, 0], 0.22, [0, 163, 255], 0.22],
+      body: [[245, 255, 0], 0.82, [255, 43, 214], 0.68],
       ground: [
-        [10, 13, 20, 0.44],
-        [31, 42, 57, 0.3],
-        [18, 23, 32, 0.2],
+        [0, 2, 8, 0.48],
+        [0, 163, 255, 0.2],
+        [3, 5, 10, 0.24],
       ],
-      grid: [132, 155, 181],
-      lanes: [120, 148, 142],
-      haze: [[132, 155, 181], 0.22, [89, 111, 142], 0.18],
+      grid: [0, 163, 255],
+      lanes: [0, 255, 157],
+      haze: [[255, 43, 214], 0.18, [0, 163, 255], 0.18],
       bodyScale: 0.14,
       bodyY: 0.58,
       starAlpha: 0.44,
@@ -963,10 +963,10 @@ if (shaderCanvas) {
 
       context.fillStyle =
         i % 3 === 0
-          ? palette.moonAlpha > 0.5 ? "rgba(132, 155, 181, 0.1)" : "rgba(185, 134, 120, 0.08)"
+          ? palette.moonAlpha > 0.5 ? rgba(palette.grid, 0.1) : rgba(palette.body[0], 0.08)
           : i % 3 === 1
-            ? "rgba(136, 165, 154, 0.08)"
-            : "rgba(88, 125, 131, 0.08)";
+            ? rgba(palette.lanes, 0.08)
+            : rgba(palette.grid, 0.08);
       context.fillRect(x, y, size, size);
     }
 
@@ -978,9 +978,9 @@ if (shaderCanvas) {
       pointer.y * height,
       Math.max(width, height) * 0.44,
     );
-    glow.addColorStop(0, palette.moonAlpha > 0.5 ? "rgba(132, 155, 181, 0.14)" : "rgba(248, 245, 236, 0.34)");
-    glow.addColorStop(0.5, palette.moonAlpha > 0.5 ? "rgba(132, 155, 181, 0.08)" : "rgba(136, 165, 154, 0.08)");
-    glow.addColorStop(1, "rgba(136, 165, 154, 0)");
+    glow.addColorStop(0, palette.moonAlpha > 0.5 ? rgba(palette.grid, 0.14) : "rgba(248, 245, 236, 0.3)");
+    glow.addColorStop(0.5, palette.moonAlpha > 0.5 ? rgba(palette.grid, 0.08) : rgba(palette.lanes, 0.08));
+    glow.addColorStop(1, rgba(palette.lanes, 0));
     context.fillStyle = glow;
     context.fillRect(0, 0, width, height);
 

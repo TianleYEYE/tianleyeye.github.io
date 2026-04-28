@@ -25,6 +25,8 @@
       <span data-orbit-dot="work"></span>
       <span data-orbit-dot="contact"></span>
     </div>
+    <div class="side-type side-type-left" aria-hidden="true">PERSONAL INDEX / 2026</div>
+    <div class="side-type side-type-right" aria-hidden="true">DESIGN / CODE / NOTES</div>
     <aside class="time-control" aria-label="主题时间控制">
       <label for="theme-hour">主题时间</label>
       <input id="theme-hour" type="range" min="0" max="23.983333" step="0.016667" autocomplete="off" />
@@ -51,6 +53,7 @@
           <p class="lead">
             这里是一个简洁的个人主页，用来记录我的学习、项目、研究兴趣和最近在做的事情。
           </p>
+          <p class="lead-note">A compact personal archive for learning, experiments, research notes, and small digital works.</p>
           <div class="actions">
             <a class="button primary" href="#work" data-magnetic>查看项目</a>
             <a class="button secondary" href="#contact" data-magnetic>联系我</a>
@@ -62,11 +65,24 @@
             alt="Tian Le 的 GitHub 头像"
           />
         </div>
+        <aside class="hero-meta" aria-label="Personal site metadata">
+          <span>Based in China</span>
+          <span>Creative front-end</span>
+          <span>Learning in public</span>
+        </aside>
       </section>
+
+      <div class="type-strip" aria-hidden="true">
+        <span>CREATIVE WEB</span>
+        <span>PERSONAL ARCHIVE</span>
+        <span>INTERFACE NOTES</span>
+        <span>RESEARCH LOG</span>
+      </div>
 
       <section id="about" class="section" data-section="about">
         <div class="section-heading" data-reveal data-reveal-side="left">
           <p class="eyebrow">About</p>
+          <p class="section-note">I care about durable craft, readable systems, and the quiet accumulation of ideas.</p>
           <h2>关于我</h2>
         </div>
         <div class="about-grid" data-reveal data-reveal-side="right">
@@ -74,7 +90,6 @@
             我关注技术、创作和长期积累。这个网站会逐步更新为个人介绍、作品集、笔记和联系方式的入口。
           </p>
           <ul class="quick-facts" aria-label="个人方向">
-            <li>Web 开发</li>
             <li>学习笔记</li>
             <li>项目实践</li>
             <li>研究探索</li>
@@ -85,11 +100,21 @@
       <section id="work" class="section" data-section="work">
         <div class="section-heading" data-reveal data-reveal-side="right">
           <p class="eyebrow">Work</p>
+          <p class="section-note">Selected directions, prototypes, and notes that can grow into a fuller portfolio.</p>
           <h2>项目与记录</h2>
         </div>
         <div class="project-grid">
           <article class="project-card" data-tilt data-reveal data-reveal-side="left">
-            <h3>个人主页</h3>
+            <h3>
+              <a
+                href="https://space.bilibili.com/436533503?spm_id_from=333.1007.0.0"
+                target="_blank"
+                rel="noreferrer"
+                data-magnetic
+              >
+                个人主页
+              </a>
+            </h3>
             <p>一个干净、轻量、适合 GitHub Pages 托管的个人网站。</p>
             <span>Website</span>
           </article>
@@ -106,9 +131,17 @@
         </div>
       </section>
 
+      <div class="type-strip type-strip-alt" aria-hidden="true">
+        <span>BUILD</span>
+        <span>STUDY</span>
+        <span>WRITE</span>
+        <span>REFINE</span>
+      </div>
+
       <section id="contact" class="section contact-section" data-section="contact">
         <div data-reveal data-reveal-side="left">
           <p class="eyebrow">Contact</p>
+          <p class="section-note">Open to conversations about web interfaces, creative tools, and long-form learning.</p>
           <h2>保持联系</h2>
           <p>如果你想联系我，可以通过下面的邮箱发送邮件。</p>
         </div>
@@ -121,6 +154,22 @@
             data-magnetic
           >
             Bilibili
+          </a>
+          <a
+            href="https://github.com/TianleYEYE"
+            target="_blank"
+            rel="noreferrer"
+            data-magnetic
+          >
+            GitHub Profile
+          </a>
+          <a
+            href="https://github.com/TianleYEYE/tianleyeye.github.io"
+            target="_blank"
+            rel="noreferrer"
+            data-magnetic
+          >
+            Website Repository
           </a>
         </div>
       </section>
