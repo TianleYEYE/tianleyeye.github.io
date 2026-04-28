@@ -3,7 +3,9 @@
   --font-body: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", STSong, SimSun, Georgia, serif;
   --font-heading: "Songti SC", STSong, "Noto Serif CJK SC", "Source Han Serif SC", "Times New Roman", serif;
   --font-display: "Bodoni 72 Display", "Bodoni 72", Didot, "Times New Roman", "Songti SC", STSong, serif;
-  --font-ui: "Avenir Next", "Helvetica Neue", Arial, "Microsoft YaHei", sans-serif;
+  --font-latin: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Inter", "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+  --font-latin-display: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Inter Tight", "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+  --font-ui: var(--font-latin);
   --bg: #f7f5ef;
   --surface: rgba(255, 255, 250, 0.8);
   --surface-strong: rgba(255, 255, 250, 0.94);
@@ -102,6 +104,7 @@ body {
   line-height: 1.6;
   font-kerning: normal;
   text-rendering: optimizeLegibility;
+  font-feature-settings: "kern" 1, "liga" 1;
 }
 
 body::before {
@@ -111,10 +114,12 @@ body::before {
   z-index: -4;
   pointer-events: none;
   background:
-    linear-gradient(90deg, rgba(21, 25, 29, 0.075) 1px, transparent 1px),
-    linear-gradient(rgba(21, 25, 29, 0.075) 1px, transparent 1px);
+    linear-gradient(90deg, rgba(21, 25, 29, 0.032) 1px, transparent 1px),
+    linear-gradient(rgba(21, 25, 29, 0.032) 1px, transparent 1px);
   background-size: 42px 42px;
-  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.86), rgba(0, 0, 0, 0.12));
+  opacity: 0.72;
+  filter: blur(0.15px);
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.62), rgba(0, 0, 0, 0.08));
 }
 
 body::after {
@@ -124,21 +129,23 @@ body::after {
   z-index: -2;
   pointer-events: none;
   background:
-    linear-gradient(118deg, transparent 0 53%, color-mix(in srgb, var(--coral) 14%, transparent) 53% 66%, transparent 66%),
-    linear-gradient(180deg, rgba(248, 245, 236, 0.02), rgba(235, 233, 223, 0.1));
+    linear-gradient(118deg, transparent 0 53%, color-mix(in srgb, var(--coral) 8%, transparent) 53% 66%, transparent 66%),
+    linear-gradient(180deg, color-mix(in srgb, var(--page-bg) 38%, transparent), color-mix(in srgb, var(--page-bg) 56%, transparent));
+  backdrop-filter: blur(7px) saturate(0.82);
+  -webkit-backdrop-filter: blur(7px) saturate(0.82);
 }
 
 body.theme-night::before {
   background:
-    linear-gradient(90deg, rgba(230, 225, 215, 0.035) 1px, transparent 1px),
-    linear-gradient(rgba(230, 225, 215, 0.035) 1px, transparent 1px);
+    linear-gradient(90deg, rgba(230, 225, 215, 0.018) 1px, transparent 1px),
+    linear-gradient(rgba(230, 225, 215, 0.018) 1px, transparent 1px);
   background-size: 34px 34px;
 }
 
 body.theme-night::after {
   background:
-    radial-gradient(circle at 50% 18%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 26rem),
-    linear-gradient(180deg, rgba(18, 23, 32, 0.08), rgba(18, 23, 32, 0.22));
+    radial-gradient(circle at 50% 18%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 26rem),
+    linear-gradient(180deg, rgba(18, 23, 32, 0.1), rgba(18, 23, 32, 0.22));
 }
 
 a {
@@ -189,12 +196,13 @@ html.has-fine-pointer .entry-hold {
   border-radius: 50%;
   background: transparent;
   color: var(--text);
-  font-family: var(--font-ui);
+  font-family: var(--font-latin);
   font-size: 0.78rem;
-  font-weight: 900;
-  letter-spacing: 0.08em;
+  font-weight: 720;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   cursor: pointer;
+  font-feature-settings: "kern" 1, "liga" 1, "tnum" 1;
 }
 
 .entry-hold-ring,
@@ -241,7 +249,9 @@ html.has-fine-pointer .entry-hold {
   width: 100vw;
   height: 100vh;
   pointer-events: none;
-  filter: saturate(0.78) contrast(1.02);
+  opacity: 0.72;
+  filter: blur(7px) saturate(0.72) contrast(0.96);
+  transform: scale(1.02);
 }
 
 .cursor-flow {
@@ -559,10 +569,10 @@ body.theme-night .section-orbit {
   top: 50%;
   z-index: 16;
   color: var(--muted);
-  font-family: var(--font-ui);
+  font-family: var(--font-latin);
   font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0.18em;
+  font-weight: 650;
+  letter-spacing: 0.16em;
   line-height: 1;
   pointer-events: none;
   text-transform: uppercase;
@@ -659,11 +669,12 @@ body.theme-night .time-control {
 
 .brand {
   position: relative;
-  font-family: var(--font-display);
+  font-family: var(--font-latin-display);
   font-size: clamp(1.05rem, 2vw, 1.35rem);
-  font-weight: 700;
+  font-weight: 720;
   letter-spacing: 0;
   text-transform: uppercase;
+  font-feature-settings: "kern" 1, "liga" 1;
 }
 
 .brand::after {
@@ -689,9 +700,10 @@ body.theme-night .time-control {
   align-items: center;
   gap: 0.45rem;
   color: var(--text);
-  font-family: var(--font-ui);
+  font-family: var(--font-latin);
   font-size: 0.86rem;
   font-weight: 900;
+  font-feature-settings: "kern" 1, "liga" 1;
 }
 
 .nav a {
@@ -786,10 +798,10 @@ main {
   gap: 0.5rem;
   margin: 0 0 1rem;
   color: var(--coral);
-  font-family: var(--font-ui);
+  font-family: var(--font-latin);
   font-size: 0.82rem;
-  font-weight: 900;
-  letter-spacing: 0.08em;
+  font-weight: 760;
+  letter-spacing: 0.11em;
   text-transform: uppercase;
 }
 
@@ -843,11 +855,13 @@ h1 {
 .title-name {
   display: block;
   color: var(--text);
-  font-family: var(--font-display);
+  font-family: var(--font-latin-display);
   font-size: clamp(6rem, 17vw, 18rem);
-  font-weight: 700;
+  font-weight: 780;
   line-height: 0.74;
+  letter-spacing: -0.015em;
   text-transform: uppercase;
+  font-feature-settings: "kern" 1, "liga" 1;
 }
 
 .glitch-title {
@@ -911,10 +925,10 @@ h3 {
 .section-note {
   max-width: 34rem;
   color: var(--muted);
-  font-family: var(--font-ui);
+  font-family: var(--font-latin);
   font-size: clamp(0.78rem, 1vw, 0.96rem);
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  font-weight: 560;
+  letter-spacing: 0.01em;
   line-height: 1.55;
 }
 
@@ -924,6 +938,7 @@ h3 {
   align-self: start;
   margin: 0;
   text-transform: uppercase;
+  font-feature-settings: "kern" 1, "liga" 1;
 }
 
 .actions {
@@ -948,8 +963,8 @@ h3 {
   background: transparent;
   color: var(--text);
   font: inherit;
-  font-family: var(--font-ui);
-  font-weight: 800;
+  font-family: var(--font-latin);
+  font-weight: 720;
   cursor: pointer;
   box-shadow: none;
   transform-origin: 50% 70%;
@@ -1055,14 +1070,15 @@ body.theme-night .portrait {
   gap: 0.55rem;
   margin-top: clamp(1rem, 4vw, 3rem);
   color: var(--muted);
-  font-family: var(--font-ui);
+  font-family: var(--font-latin);
   font-size: clamp(0.7rem, 0.9vw, 0.82rem);
   font-style: normal;
-  font-weight: 800;
-  letter-spacing: 0.12em;
+  font-weight: 650;
+  letter-spacing: 0.08em;
   line-height: 1.35;
   text-align: right;
   text-transform: uppercase;
+  font-feature-settings: "kern" 1, "liga" 1, "tnum" 1;
 }
 
 .hero-meta span {
@@ -1085,10 +1101,10 @@ body.theme-night .portrait {
   left: 0;
   top: clamp(1.2rem, 4vw, 2.6rem);
   color: var(--muted);
-  font-family: var(--font-ui);
+  font-family: var(--font-latin);
   font-size: clamp(0.78rem, 1vw, 0.95rem);
-  font-weight: 900;
-  letter-spacing: 0.18em;
+  font-weight: 680;
+  letter-spacing: 0.16em;
   line-height: 1;
   text-transform: uppercase;
   pointer-events: none;
@@ -1297,9 +1313,9 @@ body.theme-night .portrait {
   border-radius: 0;
   background: transparent;
   color: var(--muted);
-  font-family: var(--font-ui);
+  font-family: var(--font-latin);
   font-size: 0.8rem;
-  font-weight: 800;
+  font-weight: 650;
   text-transform: uppercase;
 }
 
@@ -1361,9 +1377,9 @@ body.theme-night .portrait {
   border-radius: 0;
   background: transparent;
   color: var(--text);
-  font-family: var(--font-heading);
+  font-family: var(--font-latin-display);
   box-shadow: none;
-  font-weight: 800;
+  font-weight: 720;
   text-align: left;
   transition:
     transform 150ms ease,
@@ -1408,12 +1424,13 @@ body.theme-night .contact-links a {
   padding: clamp(1rem, 2vw, 1.5rem) 0;
   border-top: 2px solid var(--line);
   color: var(--text);
-  font-family: var(--font-ui);
+  font-family: var(--font-latin-display);
   font-size: clamp(0.78rem, 1.3vw, 1.2rem);
-  font-weight: 900;
-  letter-spacing: 0.12em;
+  font-weight: 760;
+  letter-spacing: 0.08em;
   line-height: 1;
   text-transform: uppercase;
+  font-feature-settings: "kern" 1, "liga" 1, "tnum" 1;
 }
 
 .type-strip span {
@@ -1435,10 +1452,10 @@ body.theme-night .contact-links a {
 
 .type-strip-alt {
   border-bottom: 2px solid var(--line);
-  font-family: var(--font-display);
+  font-family: var(--font-latin-display);
   font-size: clamp(1.6rem, 5vw, 5.6rem);
-  font-weight: 700;
-  letter-spacing: 0;
+  font-weight: 760;
+  letter-spacing: -0.012em;
 }
 
 .type-strip-alt span:nth-child(even) {
@@ -1452,6 +1469,9 @@ body.theme-night .contact-links a {
   padding: 2rem 1rem;
   color: var(--muted);
   border-top: 1px solid var(--line);
+  font-family: var(--font-latin);
+  font-size: 0.82rem;
+  font-weight: 520;
 }
 
 [data-reveal] {
