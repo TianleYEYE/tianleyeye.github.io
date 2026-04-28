@@ -1,6 +1,5 @@
 const year = document.querySelector("#year");
 const cursorLight = document.querySelector(".cursor-light");
-const motionToggle = document.querySelector("[data-toggle-motion]");
 const emailLink = document.querySelector("[data-copy-email]");
 const tiltItems = document.querySelectorAll("[data-tilt]");
 
@@ -30,15 +29,6 @@ tiltItems.forEach((item) => {
     item.style.setProperty("--ry", "0deg");
   });
 });
-
-if (motionToggle) {
-  motionToggle.addEventListener("click", () => {
-    document.body.classList.toggle("is-slow");
-    motionToggle.textContent = document.body.classList.contains("is-slow")
-      ? "加快节奏"
-      : "切换节奏";
-  });
-}
 
 if (emailLink) {
   emailLink.addEventListener("click", async () => {
