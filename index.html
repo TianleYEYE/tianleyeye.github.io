@@ -8,13 +8,29 @@
       name="description"
       content="Tian Le 的个人网站，展示个人简介、研究方向、项目和联系方式。"
     />
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles.css?v=20260429b" />
   </head>
   <body>
+    <div class="entry-gate" data-entry-gate>
+      <button class="entry-hold" type="button" data-entry-hold aria-label="长按进入网站">
+        <span class="entry-hold-ring" aria-hidden="true"></span>
+        <span class="entry-hold-dot" aria-hidden="true"></span>
+        <span class="entry-hold-text">Hold to enter</span>
+      </button>
+    </div>
+    <svg class="filter-defs" aria-hidden="true" focusable="false">
+      <filter id="cursor-warp-filter">
+        <feTurbulence type="fractalNoise" baseFrequency="0.018 0.04" numOctaves="2" seed="8">
+          <animate attributeName="baseFrequency" dur="4.2s" values="0.014 0.032;0.024 0.048;0.014 0.032" repeatCount="indefinite" />
+        </feTurbulence>
+        <feDisplacementMap in="SourceGraphic" scale="8" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+    </svg>
     <canvas class="shader-field" aria-hidden="true"></canvas>
     <canvas class="cursor-flow" aria-hidden="true"></canvas>
     <div class="scroll-progress" aria-hidden="true"></div>
     <div class="cursor-ring" aria-hidden="true">
+      <span class="cursor-distortion"></span>
       <span class="cursor-dot"></span>
       <span class="cursor-outline"></span>
     </div>
@@ -59,10 +75,10 @@
             <a class="button secondary" href="#contact" data-magnetic>联系我</a>
           </div>
         </div>
-        <div class="portrait" data-tilt data-reveal data-reveal-side="right" aria-label="Tian Le 的 GitHub 头像">
+        <div class="portrait" data-tilt data-reveal data-reveal-side="right" aria-label="Tian Le 的个人头像">
           <img
-            src="https://github.com/TianleYEYE.png"
-            alt="Tian Le 的 GitHub 头像"
+            src="assets/avatar.png"
+            alt="Tian Le 的个人头像"
           />
         </div>
         <aside class="hero-meta" aria-label="Personal site metadata">
@@ -163,14 +179,6 @@
           >
             GitHub Profile
           </a>
-          <a
-            href="https://github.com/TianleYEYE/tianleyeye.github.io"
-            target="_blank"
-            rel="noreferrer"
-            data-magnetic
-          >
-            Website Repository
-          </a>
         </div>
       </section>
     </main>
@@ -180,6 +188,6 @@
       <span>Tian Le. Built with care.</span>
     </footer>
 
-    <script src="script.js?v=20260428"></script>
+    <script src="script.js?v=20260429b"></script>
   </body>
 </html>

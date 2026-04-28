@@ -1,4 +1,6 @@
 const year = document.querySelector("#year");
+const entryGate = document.querySelector("[data-entry-gate]");
+const entryHold = document.querySelector("[data-entry-hold]");
 const cursorLight = document.querySelector(".cursor-light");
 const cursorRing = document.querySelector(".cursor-ring");
 const cursorFlowCanvas = null;
@@ -30,6 +32,11 @@ const cursorState = {
   stretch: 0,
   visible: false,
 };
+let cursorWarpLayer = null;
+let cursorWarpContent = null;
+let entryHoldFrame = 0;
+let entryHoldStartedAt = 0;
+const entryHoldDuration = 1050;
 
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 const smoothstep = (start, end, value) => {
@@ -293,10 +300,11 @@ const getSystemHour = () => {
 
 const getInitialTheme = () => {
   const params = new URLSearchParams(window.location.search);
-  const forcedHour = Number(params.get("hour"));
+  const hasForcedHour = params.has("hour");
+  const forcedHour = hasForcedHour ? Number(params.get("hour")) : NaN;
   const forcedTheme = params.get("theme");
 
-  if (Number.isFinite(forcedHour) && forcedHour >= 0 && forcedHour < 24) {
+  if (hasForcedHour && Number.isFinite(forcedHour) && forcedHour >= 0 && forcedHour < 24) {
     return {
       followsSystemTime: false,
       hour: forcedHour,
@@ -402,9 +410,91 @@ if (finePointer.matches) {
   document.documentElement.classList.add("has-fine-pointer");
 }
 
+if (entryGate && entryHold) {
+  document.documentElement.classList.add("is-entry-locked");
+}
+
 if (year) {
   year.textContent = String(new Date().getFullYear());
 }
+
+const setEntryProgress = (progress) => {
+  entryHold?.style.setProperty("--entry-progress", clamp(progress).toFixed(3));
+};
+
+const enterSite = () => {
+  window.cancelAnimationFrame(entryHoldFrame);
+  setEntryProgress(1);
+  document.documentElement.classList.remove("is-entry-locked");
+  entryGate?.classList.add("is-hidden");
+  window.setTimeout(() => entryGate?.remove(), 720);
+};
+
+const stopEntryHold = () => {
+  if (entryGate?.classList.contains("is-hidden")) return;
+  window.cancelAnimationFrame(entryHoldFrame);
+  entryHoldFrame = 0;
+  entryHoldStartedAt = 0;
+  setEntryProgress(0);
+};
+
+const tickEntryHold = (time) => {
+  if (!entryHoldStartedAt) entryHoldStartedAt = time;
+  const progress = (time - entryHoldStartedAt) / entryHoldDuration;
+  setEntryProgress(progress);
+
+  if (progress >= 1) {
+    enterSite();
+    return;
+  }
+
+  entryHoldFrame = window.requestAnimationFrame(tickEntryHold);
+};
+
+const startEntryHold = (event) => {
+  if (!entryGate || entryGate.classList.contains("is-hidden")) return;
+  event.preventDefault();
+  entryHold.setPointerCapture?.(event.pointerId);
+  window.cancelAnimationFrame(entryHoldFrame);
+  entryHoldStartedAt = 0;
+  entryHoldFrame = window.requestAnimationFrame(tickEntryHold);
+};
+
+if (entryHold) {
+  entryHold.addEventListener("pointerdown", startEntryHold);
+  entryHold.addEventListener("pointerup", stopEntryHold);
+  entryHold.addEventListener("pointercancel", stopEntryHold);
+  entryHold.addEventListener("pointerleave", stopEntryHold);
+  entryHold.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      enterSite();
+    }
+  });
+}
+
+const setupCursorWarpLayer = () => {
+  if (!finePointer.matches || cursorWarpLayer) return;
+
+  cursorWarpLayer = document.createElement("div");
+  cursorWarpLayer.className = "cursor-warp-layer";
+  cursorWarpLayer.setAttribute("aria-hidden", "true");
+  cursorWarpLayer.style.setProperty("--warp-scroll-y", `${window.scrollY}px`);
+
+  cursorWarpContent = document.createElement("div");
+  cursorWarpContent.className = "cursor-warp-content";
+
+  document.querySelectorAll(".site-header, main, .footer").forEach((node) => {
+    const clone = node.cloneNode(true);
+    clone.querySelectorAll("[id]").forEach((element) => element.removeAttribute("id"));
+    clone.querySelectorAll("a, button, input, textarea, select").forEach((element) => {
+      element.setAttribute("tabindex", "-1");
+    });
+    cursorWarpContent.append(clone);
+  });
+
+  cursorWarpLayer.append(cursorWarpContent);
+  document.body.append(cursorWarpLayer);
+};
 
 let flowPushPoint = null;
 
@@ -418,6 +508,9 @@ const updateScrollProgress = () => {
   const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
   const progress = clamp(window.scrollY / maxScroll);
   document.documentElement.style.setProperty("--scroll-progress", progress.toFixed(4));
+  if (cursorWarpLayer) {
+    cursorWarpLayer.style.setProperty("--warp-scroll-y", `${window.scrollY}px`);
+  }
 };
 
 const setActiveSection = (sectionId) => {
@@ -428,6 +521,7 @@ const setActiveSection = (sectionId) => {
 
 updateScrollProgress();
 setActiveSection("home");
+setupCursorWarpLayer();
 
 window.addEventListener("pointermove", (event) => {
   const dx = pointer.hasMoved ? event.clientX - pointer.px : 0;
@@ -454,6 +548,14 @@ window.addEventListener("pointermove", (event) => {
     cursorState.visible = true;
     cursorRing.style.setProperty("--dot-x", `${event.clientX}px`);
     cursorRing.style.setProperty("--dot-y", `${event.clientY}px`);
+  }
+
+  if (cursorWarpLayer) {
+    cursorWarpLayer.style.setProperty("--warp-x", `${event.clientX}px`);
+    cursorWarpLayer.style.setProperty("--warp-y", `${event.clientY}px`);
+    cursorWarpLayer.style.setProperty("--warp-angle", `${cursorState.angle}rad`);
+    cursorWarpLayer.style.setProperty("--warp-stretch", (1 + pointer.speed * 0.28).toFixed(3));
+    cursorWarpLayer.classList.add("is-visible");
   }
 
   flowPushPoint?.(event.clientX, event.clientY, pointer.speed);
@@ -506,7 +608,11 @@ interactiveItems.forEach((item) => {
 window.addEventListener("pointerdown", () => cursorRing?.classList.add("is-pressed"));
 window.addEventListener("pointerup", () => cursorRing?.classList.remove("is-pressed"));
 window.addEventListener("pointercancel", () => cursorRing?.classList.remove("is-pressed"));
-window.addEventListener("blur", () => cursorRing?.classList.remove("is-pressed"));
+window.addEventListener("blur", () => {
+  cursorRing?.classList.remove("is-pressed");
+  cursorWarpLayer?.classList.remove("is-visible");
+});
+document.addEventListener("pointerleave", () => cursorWarpLayer?.classList.remove("is-visible"));
 
 const animateCursor = () => {
   if (cursorRing && finePointer.matches) {
@@ -524,6 +630,16 @@ const animateCursor = () => {
     cursorRing.style.setProperty("--cursor-angle", `${cursorState.angle}rad`);
     cursorRing.style.setProperty("--cursor-scale-x", scaleX.toFixed(3));
     cursorRing.style.setProperty("--cursor-scale-y", scaleY.toFixed(3));
+
+    if (cursorWarpLayer) {
+      const cursorSize = cursorRing.classList.contains("is-active") ? 66 : 50;
+      cursorWarpLayer.style.setProperty("--warp-x", `${cursorState.outlineX}px`);
+      cursorWarpLayer.style.setProperty("--warp-y", `${cursorState.outlineY}px`);
+      cursorWarpLayer.style.setProperty("--warp-angle", `${cursorState.angle}rad`);
+      cursorWarpLayer.style.setProperty("--warp-scale-x", scaleX.toFixed(3));
+      cursorWarpLayer.style.setProperty("--warp-scale-y", scaleY.toFixed(3));
+      cursorWarpLayer.style.setProperty("--warp-size", `${cursorSize}px`);
+    }
   }
 
   window.requestAnimationFrame(animateCursor);
