@@ -15,6 +15,7 @@ const shaderCanvas = document.querySelector(".shader-field");
 const themeHourInput = document.querySelector("#theme-hour");
 const themeTimeOutput = document.querySelector("[data-theme-time]");
 const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
+const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 const pointer = {
   x: 0.5,
   y: 0.45,
@@ -576,6 +577,11 @@ const portfolioInner = document.querySelector("[data-portfolio-inner]");
 
 if (portfolioReveal && portfolioInner) {
   const marqueeTrack = portfolioInner.querySelector("[data-marquee-track]");
+  const clothDisplacement = document.querySelector("#cloth-warp-filter feDisplacementMap");
+  let portfolioSnapTimer = 0;
+  let portfolioIsSnapping = false;
+  let lastPortfolioScrollY = window.scrollY;
+  let portfolioScrollDirection = 1;
 
   if (marqueeTrack) {
     const originalSlides = [...marqueeTrack.querySelectorAll(".portfolio-slide")];
@@ -603,30 +609,96 @@ if (portfolioReveal && portfolioInner) {
     const scrolled = -rect.top;
     const progress = clamp(scrolled / totalScroll);
 
-    const easedEntry = smoothstep(0, 0.35, progress);
-    const easedScale = smoothstep(0.08, 0.65, progress);
-    const easedCenter = smoothstep(0.15, 0.75, progress);
+    const easedEntry = smoothstep(0, 0.16, progress);
+    const easedScale = smoothstep(0.03, 0.74, progress);
+    const easedCenter = smoothstep(0.08, 0.82, progress);
+    const easedSettle = smoothstep(0.62, 1, progress);
 
-    const scale = mix(0.42, 1, easedScale);
-    const x = mix(-24, 0, easedCenter);
-    const y = mix(8, 0, easedCenter);
-    const opacity = easedEntry;
-    const radius = mix(12, 0, smoothstep(0.5, 0.85, progress));
+    const clothEnergy = 1 - easedSettle;
+
+    const scale = mix(0.32, 1.04, easedScale);
+    const x = mix(-34, 0, easedCenter);
+    const y = mix(11, 0, easedCenter);
+    const rotate = mix(-7, 0, easedCenter);
+    const opacity = mix(0.18, 1, easedEntry);
+    const radius = mix(44, 28, smoothstep(0.45, 0.9, progress));
+
+    const displacementScale = clothEnergy * clothEnergy * 46;
+
+    if (clothDisplacement) {
+      clothDisplacement.setAttribute("scale", displacementScale.toFixed(1));
+    }
 
     portfolioInner.style.setProperty("--reveal-scale", scale.toFixed(4));
     portfolioInner.style.setProperty("--reveal-x", `${x.toFixed(2)}vw`);
-    portfolioInner.style.setProperty("--reveal-y", `${y.toFixed(2)}px`);
+    portfolioInner.style.setProperty("--reveal-y", `${y.toFixed(2)}vh`);
+    portfolioInner.style.setProperty("--reveal-rotate", `${rotate.toFixed(2)}deg`);
     portfolioInner.style.setProperty("--reveal-opacity", opacity.toFixed(4));
     portfolioInner.style.setProperty("--reveal-radius", `${radius.toFixed(1)}px`);
 
-    if (progress > 0.85) {
+    if (progress > 0.88) {
       portfolioInner.classList.add("is-full");
     } else {
       portfolioInner.classList.remove("is-full");
     }
   };
 
-  window.addEventListener("scroll", updatePortfolioReveal, { passive: true });
+  const getPortfolioScrollState = () => {
+    const rect = portfolioReveal.getBoundingClientRect();
+    const viewportH = window.innerHeight;
+    const totalScroll = rect.height - viewportH;
+
+    if (totalScroll <= 0) return null;
+
+    const progress = clamp(-rect.top / totalScroll);
+    const documentTop = window.scrollY + rect.top;
+
+    return { rect, totalScroll, progress, documentTop };
+  };
+
+  const snapPortfolioReveal = () => {
+    portfolioSnapTimer = 0;
+
+    if (portfolioIsSnapping || prefersReducedMotion.matches) return;
+
+    const state = getPortfolioScrollState();
+    if (!state) return;
+
+    const { rect, totalScroll, progress, documentTop } = state;
+    const isWithinReveal = rect.top < window.innerHeight * 0.86 && rect.bottom > window.innerHeight * 0.18;
+    const isBetweenStops = progress > 0.015 && progress < 0.82;
+
+    if (!isWithinReveal || !isBetweenStops) return;
+
+    const isScrollingDown = portfolioScrollDirection >= 0;
+    const targetProgress = isScrollingDown || progress > 0.36 ? 0.72 : 0;
+    if (Math.abs(progress - targetProgress) < 0.045) return;
+
+    portfolioIsSnapping = true;
+    window.scrollTo({
+      top: documentTop + totalScroll * targetProgress,
+      behavior: "smooth",
+    });
+
+    window.setTimeout(() => {
+      portfolioIsSnapping = false;
+    }, 520);
+  };
+
+  const schedulePortfolioSnap = () => {
+    if (portfolioSnapTimer) {
+      window.clearTimeout(portfolioSnapTimer);
+    }
+    portfolioSnapTimer = window.setTimeout(snapPortfolioReveal, 140);
+  };
+
+  window.addEventListener("scroll", () => {
+    const currentScrollY = window.scrollY;
+    portfolioScrollDirection = currentScrollY >= lastPortfolioScrollY ? 1 : -1;
+    lastPortfolioScrollY = currentScrollY;
+    updatePortfolioReveal();
+    schedulePortfolioSnap();
+  }, { passive: true });
   window.addEventListener("resize", updatePortfolioReveal);
   updatePortfolioReveal();
 }
@@ -678,9 +750,98 @@ const setActiveSection = (sectionId) => {
   });
 };
 
+const headerOffset = () => {
+  const header = document.querySelector(".site-header");
+  return header ? header.getBoundingClientRect().height + 16 : 0;
+};
+
+let sectionSnapTimer = 0;
+let sectionSnapIsActive = false;
+let lastSectionInputAt = performance.now();
+
+const markSectionInput = () => {
+  lastSectionInputAt = performance.now();
+  if (sectionSnapTimer) {
+    window.clearTimeout(sectionSnapTimer);
+    sectionSnapTimer = 0;
+  }
+};
+
+const getSectionSnapTargets = () => {
+  const offset = headerOffset();
+  const targets = [...sectionItems].map((section) => {
+    const rect = section.getBoundingClientRect();
+    const sectionTop = window.scrollY + rect.top;
+    const targetTop = Math.max(0, sectionTop - offset);
+
+    return {
+      id: section.dataset.section,
+      top: targetTop,
+      distance: Math.abs(window.scrollY - targetTop),
+    };
+  });
+
+  if (portfolioReveal) {
+    const rect = portfolioReveal.getBoundingClientRect();
+    const totalScroll = rect.height - window.innerHeight;
+    if (totalScroll > 0) {
+      const top = Math.max(0, window.scrollY + rect.top + totalScroll * 0.72);
+      targets.push({
+        id: "portfolio",
+        top,
+        distance: Math.abs(window.scrollY - top),
+      });
+    }
+  }
+
+  return targets;
+};
+
+const snapToNearestSection = () => {
+  sectionSnapTimer = 0;
+
+  if (sectionSnapIsActive || prefersReducedMotion.matches || document.documentElement.classList.contains("is-entry-locked")) {
+    return;
+  }
+
+  const timeSinceInput = performance.now() - lastSectionInputAt;
+  if (timeSinceInput < 260) {
+    sectionSnapTimer = window.setTimeout(snapToNearestSection, 260 - timeSinceInput);
+    return;
+  }
+
+  const targets = getSectionSnapTargets()
+    .filter((target) => target.id && Number.isFinite(target.top))
+    .sort((a, b) => a.distance - b.distance);
+  const nearest = targets[0];
+
+  if (!nearest || nearest.distance < Math.min(52, window.innerHeight * 0.06)) return;
+
+  sectionSnapIsActive = true;
+  window.scrollTo({
+    top: nearest.top,
+    behavior: "smooth",
+  });
+
+  window.setTimeout(() => {
+    sectionSnapIsActive = false;
+  }, 620);
+};
+
+const scheduleSectionSnap = () => {
+  if (sectionSnapTimer) {
+    window.clearTimeout(sectionSnapTimer);
+  }
+  sectionSnapTimer = window.setTimeout(snapToNearestSection, 280);
+};
+
 updateScrollProgress();
 setActiveSection("home");
 setupCursorWarpLayer();
+
+["wheel", "touchstart", "touchmove", "pointerdown", "keydown"].forEach((eventName) => {
+  window.addEventListener(eventName, markSectionInput, { passive: true });
+});
 
 window.addEventListener("pointermove", (event) => {
   const dx = pointer.hasMoved ? event.clientX - pointer.px : 0;
@@ -806,17 +967,26 @@ const animateCursor = () => {
 
 animateCursor();
 
-window.addEventListener("scroll", updateScrollProgress, { passive: true });
-window.addEventListener("resize", updateScrollProgress);
+window.addEventListener("scroll", () => {
+  updateScrollProgress();
+  scheduleSectionSnap();
+}, { passive: true });
+window.addEventListener("resize", () => {
+  updateScrollProgress();
+  markSectionInput();
+});
 
 if ("IntersectionObserver" in window) {
   const revealObserver = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
-        entry.target.classList.toggle("is-visible", entry.isIntersecting);
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          revealObserver.unobserve(entry.target);
+        }
       });
     },
-    { threshold: 0.2, rootMargin: "0px 0px -10% 0px" },
+    { threshold: 0.15, rootMargin: "0px 0px -5% 0px" },
   );
 
   revealItems.forEach((item) => revealObserver.observe(item));

@@ -8,7 +8,7 @@
       name="description"
       content="Tian Le 的个人网站，展示个人简介、研究方向、项目和联系方式。"
     />
-    <link rel="stylesheet" href="styles.css?v=20260429t" />
+    <link rel="stylesheet" href="styles.css?v=20260429ag" />
   </head>
   <body>
     <div class="entry-gate" data-entry-gate>
@@ -38,6 +38,10 @@
           <animate attributeName="baseFrequency" dur="4.2s" values="0.014 0.032;0.024 0.048;0.014 0.032" repeatCount="indefinite" />
         </feTurbulence>
         <feDisplacementMap in="SourceGraphic" scale="8" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+      <filter id="cloth-warp-filter" x="-5%" y="-5%" width="110%" height="110%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.012 0.022" numOctaves="3" seed="42" result="noise" />
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G" />
       </filter>
     </svg>
     <canvas class="shader-field" aria-hidden="true"></canvas>
@@ -91,7 +95,7 @@
         </div>
         <div class="portrait" data-tilt data-reveal data-reveal-side="right" aria-label="Tian Le 的个人头像">
           <img
-            src="assets/avatar.png"
+            src="assets/avatar.jpg"
             alt="Tian Le 的个人头像"
           />
         </div>
@@ -116,9 +120,6 @@
           <h2>关于我</h2>
         </div>
         <div class="about-grid" data-reveal data-reveal-side="right">
-          <p>
-            我关注技术、创作和长期积累。这个网站会逐步更新为个人介绍、作品集、笔记和联系方式的入口。
-          </p>
           <ul class="quick-facts" aria-label="个人方向">
             <li>学习笔记</li>
             <li>项目实践</li>
@@ -229,6 +230,6 @@
       <span>Tian Le. Built with care.</span>
     </footer>
 
-    <script src="script.js?v=20260429t"></script>
+    <script src="script.js?v=20260429ag"></script>
   </body>
 </html>

@@ -1270,6 +1270,7 @@ body.theme-night .portrait {
 }
 
 .portrait img {
+  display: block;
   position: relative;
   z-index: 1;
   width: 100%;
@@ -1367,9 +1368,10 @@ body.theme-night .portrait {
 }
 
 .about-grid > p {
-  grid-column: 4 / 9;
+  grid-column: 1 / 6;
   max-width: 42rem;
   margin-top: clamp(1rem, 4vw, 3rem);
+  text-align: left;
 }
 
 .quick-facts {
@@ -1539,7 +1541,7 @@ body.theme-night .portrait {
 
 .portfolio-reveal {
   position: relative;
-  height: 200vh;
+  height: 155vh;
   pointer-events: none;
 }
 
@@ -1553,6 +1555,8 @@ body.theme-night .portrait {
 }
 
 .portfolio-reveal-viewport {
+  position: relative;
+  z-index: 1;
   width: 100%;
   height: 100%;
   display: grid;
@@ -1561,36 +1565,45 @@ body.theme-night .portrait {
 }
 
 .portfolio-reveal-inner {
-  --reveal-scale: 0.42;
-  --reveal-x: -24vw;
-  --reveal-y: 0;
-  --reveal-radius: 12px;
-  --reveal-opacity: 0;
-  width: 80vw;
-  max-width: 1200px;
-  padding: clamp(1.5rem, 3vw, 2.5rem);
-  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--line));
+  --reveal-scale: 0.28;
+  --reveal-x: -34vw;
+  --reveal-y: 10vh;
+  --reveal-rotate: -6deg;
+  --reveal-radius: 42px;
+  --reveal-opacity: 0.18;
+  position: relative;
+  width: min(90vw, 92rem);
+  height: clamp(19rem, 42vw, 42rem);
+  padding: 0;
+  border: 0;
   border-radius: var(--reveal-radius);
-  background: var(--surface-strong);
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.08);
-  transform: scale(var(--reveal-scale)) translateX(var(--reveal-x)) translateY(var(--reveal-y));
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface-strong));
+  box-shadow: 0 26px 90px color-mix(in srgb, var(--accent) 18%, transparent);
+  transform:
+    translate3d(var(--reveal-x), var(--reveal-y), 0)
+    rotate(var(--reveal-rotate))
+    scale(var(--reveal-scale));
+  filter: url("#cloth-warp-filter");
   opacity: var(--reveal-opacity);
-  will-change: transform, opacity;
+  overflow: hidden;
+  will-change: transform, opacity, filter;
   pointer-events: auto;
 }
 
 .portfolio-reveal-inner.is-full {
-  border-color: color-mix(in srgb, var(--accent) 32%, var(--line));
   box-shadow:
-    0 32px 100px color-mix(in srgb, var(--accent) 12%, transparent),
+    0 38px 120px color-mix(in srgb, var(--accent) 16%, transparent),
     0 8px 32px rgba(0, 0, 0, 0.06);
+  filter: none;
 }
 
 .marquee-track {
   display: flex;
-  gap: clamp(0.65rem, 1.2vw, 1rem);
+  align-items: stretch;
+  gap: 0;
+  height: 100%;
   width: max-content;
-  animation: marqueeScroll 22s linear infinite;
+  animation: marqueeScroll 18s ease-in-out infinite alternate;
 }
 
 .marquee-track.is-paused {
@@ -1602,16 +1615,15 @@ body.theme-night .portrait {
     transform: translateX(0);
   }
   100% {
-    transform: translateX(-50%);
+    transform: translateX(-38%);
   }
 }
 
 .portfolio-slide {
   flex: 0 0 auto;
-  width: clamp(10rem, 18vw, 15rem);
+  width: min(82vw, 68rem);
   margin: 0;
-  display: grid;
-  gap: 0.55rem;
+  display: block;
   transition: transform 320ms cubic-bezier(0.16, 1, 0.3, 1), opacity 320ms ease;
   cursor: default;
 }
@@ -1622,13 +1634,14 @@ body.theme-night .portrait {
 }
 
 .portfolio-slide > div {
-  aspect-ratio: 4 / 3;
-  border: 1px solid var(--line);
+  height: 100%;
+  border: 0;
   background:
     linear-gradient(135deg, color-mix(in srgb, var(--accent) 26%, transparent), transparent 42%),
     linear-gradient(24deg, transparent 0 44%, color-mix(in srgb, var(--coral) 22%, transparent) 44% 62%, transparent 62%),
     radial-gradient(circle at 72% 26%, color-mix(in srgb, var(--text) 12%, transparent) 0 0.45rem, transparent 0.5rem),
     color-mix(in srgb, var(--surface-strong) 72%, transparent);
+  filter: saturate(1.22) contrast(1.04);
   transition: border-color 220ms ease, box-shadow 220ms ease;
 }
 
@@ -1659,6 +1672,12 @@ body.theme-night .portrait {
 }
 
 .portfolio-slide figcaption {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
   color: var(--muted);
   font-family: var(--font-latin);
   font-size: 0.72rem;
@@ -1869,10 +1888,11 @@ body.theme-night .contact-links a {
 }
 
 .portrait[data-reveal] {
-  --reveal-x: 16rem;
-  --reveal-scale-x: 0.82;
-  --reveal-scale-y: 0.82;
-  --portrait-roll: 26deg;
+  --reveal-x: 0rem;
+  --reveal-scale-x: 1;
+  --reveal-scale-y: 1;
+  --portrait-roll: 0deg;
+  opacity: 1;
 }
 
 .portrait[data-reveal].is-visible {
@@ -2076,7 +2096,7 @@ body.theme-night .contact-links a {
   }
 
   .portfolio-slide {
-    width: clamp(8rem, 38vw, 12rem);
+    width: min(86vw, 30rem);
   }
 
   .project-card span {
@@ -2084,14 +2104,15 @@ body.theme-night .contact-links a {
   }
 
   .portfolio-reveal {
-    height: 160vh;
+    height: 135vh;
   }
 
   .portfolio-reveal-inner {
-    --reveal-scale: 0.38;
-    --reveal-x: -16vw;
+    --reveal-scale: 0.42;
+    --reveal-x: -26vw;
+    --reveal-y: 8vh;
     width: 92vw;
-    padding: 1rem;
+    height: clamp(17rem, 78vw, 30rem);
   }
 
   .project-card:first-child {
