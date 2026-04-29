@@ -35,8 +35,13 @@ const cursorState = {
 let cursorWarpLayer = null;
 let cursorWarpContent = null;
 let entryHoldFrame = 0;
-let entryHoldStartedAt = 0;
-const entryHoldDuration = 1050;
+let entryProgress = 0;
+let entryIsHolding = false;
+let entryIsComplete = false;
+let entryLastTime = 0;
+const entryHoldDuration = 2300;
+const entryReleaseDuration = 1450;
+const entryMeterLength = 314.16;
 
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 const smoothstep = (start, end, value) => {
@@ -293,6 +298,12 @@ const getReadableColors = (hour) => {
   return themeKeyframes.night.css;
 };
 
+const getEntryTransitionColor = () => {
+  const readableText = getReadableColors(selectedHour).text;
+  const accentMix = themeState.css.accent;
+  return rgb(mixRgb(readableText, accentMix, 0.16));
+};
+
 const getSystemHour = () => {
   const now = new Date();
   return now.getHours() + now.getMinutes() / 60;
@@ -359,6 +370,7 @@ const applyVisualTheme = () => {
   document.body.style.setProperty("--text", rgb(readableColors.text));
   document.body.style.setProperty("--muted", rgb(readableColors.muted));
   document.body.style.setProperty("--line", rgba(readableColors.line.slice(0, 3), readableColors.line[3]));
+  document.body.style.setProperty("--entry-transition-color", getEntryTransitionColor());
   document.body.style.setProperty("--accent", rgb(themeState.css.accent));
   document.body.style.setProperty("--accent-strong", rgb(themeState.css.accentStrong));
   document.body.style.setProperty("--coral", rgb(themeState.css.coral));
@@ -419,55 +431,104 @@ if (year) {
 }
 
 const setEntryProgress = (progress) => {
-  entryHold?.style.setProperty("--entry-progress", clamp(progress).toFixed(3));
+  entryProgress = clamp(progress);
+  entryHold?.style.setProperty("--entry-progress", entryProgress.toFixed(4));
+  entryHold?.style.setProperty("--entry-dot-scale", (0.82 + entryProgress * 0.24).toFixed(3));
+  entryHold?.style.setProperty("--entry-meter-offset", `${(entryMeterLength * (1 - entryProgress)).toFixed(2)}px`);
+
+  const progressRing = entryHold?.querySelector(".entry-hold-progress");
+  progressRing?.style.setProperty("stroke-dashoffset", `${(entryMeterLength * (1 - entryProgress)).toFixed(2)}px`);
+
+  entryHold?.querySelectorAll(".entry-hold-orbit").forEach((orbit, index, orbits) => {
+    const orbitProgress = clamp(entryProgress * orbits.length - index);
+    const easedProgress = orbitProgress * orbitProgress * (3 - 2 * orbitProgress);
+    const orbitScale = 1.08 + index * 0.18 + easedProgress * 0.13;
+
+    orbit.style.setProperty("--orbit-alpha", easedProgress.toFixed(3));
+    orbit.style.setProperty("--orbit-scale", orbitScale.toFixed(3));
+  });
 };
 
 const enterSite = () => {
+  if (entryIsComplete) return;
+
+  entryIsComplete = true;
+  entryIsHolding = false;
   window.cancelAnimationFrame(entryHoldFrame);
+  entryHoldFrame = 0;
   setEntryProgress(1);
-  document.documentElement.classList.remove("is-entry-locked");
-  entryGate?.classList.add("is-hidden");
-  window.setTimeout(() => entryGate?.remove(), 720);
+  entryHold?.classList.remove("is-holding");
+  entryGate?.classList.add("is-complete");
+
+  window.setTimeout(() => {
+    document.documentElement.classList.remove("is-entry-locked");
+    entryGate?.classList.add("is-hidden");
+  }, 2400);
+
+  window.setTimeout(() => entryGate?.remove(), 3200);
 };
 
 const stopEntryHold = () => {
-  if (entryGate?.classList.contains("is-hidden")) return;
-  window.cancelAnimationFrame(entryHoldFrame);
-  entryHoldFrame = 0;
-  entryHoldStartedAt = 0;
-  setEntryProgress(0);
+  if (entryIsComplete || entryGate?.classList.contains("is-hidden")) return;
+
+  entryIsHolding = false;
+  entryHold?.classList.remove("is-holding");
 };
 
-const tickEntryHold = (time) => {
-  if (!entryHoldStartedAt) entryHoldStartedAt = time;
-  const progress = (time - entryHoldStartedAt) / entryHoldDuration;
-  setEntryProgress(progress);
+const tickEntryHold = () => {
+  const now = Date.now();
+  const delta = Math.min(240, now - entryLastTime || 16);
+  entryLastTime = now;
 
-  if (progress >= 1) {
+  if (entryIsHolding) {
+    setEntryProgress(entryProgress + delta / entryHoldDuration);
+  } else {
+    setEntryProgress(entryProgress - delta / entryReleaseDuration);
+  }
+
+  if (entryProgress >= 1) {
     enterSite();
     return;
   }
 
-  entryHoldFrame = window.requestAnimationFrame(tickEntryHold);
+  if (!entryIsComplete) {
+    entryHoldFrame = window.requestAnimationFrame(tickEntryHold);
+  }
 };
 
 const startEntryHold = (event) => {
-  if (!entryGate || entryGate.classList.contains("is-hidden")) return;
+  if (!entryGate || entryIsComplete || entryGate.classList.contains("is-hidden")) return;
+  if (entryIsHolding) return;
+
   event.preventDefault();
-  entryHold.setPointerCapture?.(event.pointerId);
-  window.cancelAnimationFrame(entryHoldFrame);
-  entryHoldStartedAt = 0;
-  entryHoldFrame = window.requestAnimationFrame(tickEntryHold);
+  entryIsHolding = true;
+  entryHold?.classList.add("is-holding");
+  if (event.pointerId !== undefined) {
+    entryHold.setPointerCapture?.(event.pointerId);
+  }
 };
 
 if (entryHold) {
+  setEntryProgress(0);
+  entryHoldFrame = window.requestAnimationFrame(tickEntryHold);
   entryHold.addEventListener("pointerdown", startEntryHold);
   entryHold.addEventListener("pointerup", stopEntryHold);
   entryHold.addEventListener("pointercancel", stopEntryHold);
-  entryHold.addEventListener("pointerleave", stopEntryHold);
+  entryHold.addEventListener("mousedown", startEntryHold);
+  window.addEventListener("pointerup", stopEntryHold);
+  window.addEventListener("pointercancel", stopEntryHold);
+  window.addEventListener("mouseup", stopEntryHold);
   entryHold.addEventListener("keydown", (event) => {
     if (event.key === "Enter" || event.key === " ") {
-      enterSite();
+      event.preventDefault();
+      entryIsHolding = true;
+      entryHold.classList.add("is-holding");
+    }
+  });
+  entryHold.addEventListener("keyup", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      stopEntryHold();
     }
   });
 }
