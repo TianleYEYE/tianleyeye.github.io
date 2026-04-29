@@ -253,9 +253,11 @@ const getThemeState = (hour) => {
 
 const getThemeName = (hour) => {
   const state = getThemeState(hour);
-  if (state.shader.moonAlpha > 0.55) return "night";
-  if (state.shader.sunAlpha > 0.55 && hour >= 15.5) return "dusk";
-  return "day";
+  if (hour < 5.5) return "night";
+  if (hour < 7.5) return state.shader.moonAlpha > 0.55 ? "night" : "day";
+  if (hour < 15.5) return "day";
+  if (hour < 21) return "dusk";
+  return "night";
 };
 
 const getReadableColors = (hour) => {
@@ -279,12 +281,20 @@ const getReadableColors = (hour) => {
     return themeKeyframes.day.css;
   }
 
-  if (hour < 19.4) {
-    return themeKeyframes.dusk.css;
+  if (hour < 18.25) {
+    const amount = smoothstep(15.5, 18.25, hour);
+    return {
+      text: mixRgb(themeKeyframes.day.css.text, themeKeyframes.dusk.css.text, amount),
+      muted: mixRgb(themeKeyframes.day.css.muted, themeKeyframes.dusk.css.muted, amount),
+      line: [
+        ...mixRgb(themeKeyframes.day.css.line.slice(0, 3), themeKeyframes.dusk.css.line.slice(0, 3), amount),
+        mix(themeKeyframes.day.css.line[3], themeKeyframes.dusk.css.line[3], amount),
+      ],
+    };
   }
 
-  if (hour < 20.4) {
-    const amount = smoothstep(19.4, 20.4, hour);
+  if (hour < 21) {
+    const amount = smoothstep(18.25, 21, hour);
     return {
       text: mixRgb(themeKeyframes.dusk.css.text, themeKeyframes.night.css.text, amount),
       muted: mixRgb(themeKeyframes.dusk.css.muted, themeKeyframes.night.css.muted, amount),
