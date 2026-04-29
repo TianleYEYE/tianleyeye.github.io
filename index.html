@@ -99,6 +99,9 @@
             alt="Tian Le 的个人头像"
           />
         </div>
+        <div class="hero-ai-note" aria-hidden="true">
+          <span>这个人有点 AI</span>
+        </div>
         <aside class="hero-meta" aria-label="Personal site metadata">
           <span>Based in China</span>
           <span>Creative front-end</span>
@@ -106,11 +109,17 @@
         </aside>
       </section>
 
-      <div class="type-strip" aria-hidden="true">
-        <span>CREATIVE WEB</span>
-        <span>PERSONAL ARCHIVE</span>
-        <span>INTERFACE NOTES</span>
-        <span>RESEARCH LOG</span>
+      <div class="type-strip type-strip-marquee" aria-hidden="true">
+        <div class="type-strip-track">
+          <span>CREATIVE WEB</span>
+          <span>PERSONAL ARCHIVE</span>
+          <span>INTERFACE NOTES</span>
+          <span>RESEARCH LOG</span>
+          <span>CREATIVE WEB</span>
+          <span>PERSONAL ARCHIVE</span>
+          <span>INTERFACE NOTES</span>
+          <span>RESEARCH LOG</span>
+        </div>
       </div>
 
       <section id="about" class="section" data-section="about">
@@ -165,35 +174,26 @@
           <div class="portfolio-reveal-sticky" data-portfolio-sticky>
             <div class="portfolio-reveal-viewport" data-portfolio-viewport>
               <div class="portfolio-reveal-inner" data-portfolio-inner>
-                <div class="marquee-track" data-marquee-track>
-                  <figure class="portfolio-slide portfolio-placeholder-a">
-                    <div aria-hidden="true"></div>
-                    <figcaption>Application Study</figcaption>
-                  </figure>
-                  <figure class="portfolio-slide portfolio-placeholder-b">
-                    <div aria-hidden="true"></div>
-                    <figcaption>Research Notes</figcaption>
-                  </figure>
-                  <figure class="portfolio-slide portfolio-placeholder-c">
-                    <div aria-hidden="true"></div>
-                    <figcaption>Design Draft</figcaption>
-                  </figure>
-                  <figure class="portfolio-slide portfolio-placeholder-d">
-                    <div aria-hidden="true"></div>
-                    <figcaption>Open Source</figcaption>
-                  </figure>
-                </div>
+                <video class="portfolio-video" autoplay muted loop playsinline preload="metadata" aria-label="Portfolio video">
+                  <source src="assets/portfolio/portfolio.mp4" type="video/mp4" />
+                </video>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <div class="type-strip type-strip-alt" aria-hidden="true">
-        <span>BUILD</span>
-        <span>STUDY</span>
-        <span>WRITE</span>
-        <span>REFINE</span>
+      <div class="type-strip type-strip-alt type-strip-marquee" aria-hidden="true">
+        <div class="type-strip-track">
+          <span>BUILD</span>
+          <span>STUDY</span>
+          <span>WRITE</span>
+          <span>REFINE</span>
+          <span>BUILD</span>
+          <span>STUDY</span>
+          <span>WRITE</span>
+          <span>REFINE</span>
+        </div>
       </div>
 
       <section id="contact" class="section contact-section" data-section="contact">

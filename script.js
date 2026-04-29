@@ -574,30 +574,16 @@ if (entryHold) {
 
 const portfolioReveal = document.querySelector("[data-portfolio-reveal]");
 const portfolioInner = document.querySelector("[data-portfolio-inner]");
+const workSection = document.querySelector("#work");
+const workHeading = workSection?.querySelector(".section-heading");
+const portfolioSnapTargetProgress = 0.72;
 
 if (portfolioReveal && portfolioInner) {
-  const marqueeTrack = portfolioInner.querySelector("[data-marquee-track]");
   const clothDisplacement = document.querySelector("#cloth-warp-filter feDisplacementMap");
   let portfolioSnapTimer = 0;
   let portfolioIsSnapping = false;
   let lastPortfolioScrollY = window.scrollY;
   let portfolioScrollDirection = 1;
-
-  if (marqueeTrack) {
-    const originalSlides = [...marqueeTrack.querySelectorAll(".portfolio-slide")];
-    originalSlides.forEach((slide) => {
-      const clone = slide.cloneNode(true);
-      marqueeTrack.append(clone);
-    });
-
-    marqueeTrack.addEventListener("pointerenter", () => {
-      marqueeTrack.classList.add("is-paused");
-    });
-
-    marqueeTrack.addEventListener("pointerleave", () => {
-      marqueeTrack.classList.remove("is-paused");
-    });
-  }
 
   const updatePortfolioReveal = () => {
     const rect = portfolioReveal.getBoundingClientRect();
@@ -610,9 +596,9 @@ if (portfolioReveal && portfolioInner) {
     const progress = clamp(scrolled / totalScroll);
 
     const easedEntry = smoothstep(0, 0.16, progress);
-    const easedScale = smoothstep(0.03, 0.74, progress);
-    const easedCenter = smoothstep(0.08, 0.82, progress);
-    const easedSettle = smoothstep(0.62, 1, progress);
+    const easedScale = smoothstep(0.03, portfolioSnapTargetProgress, progress);
+    const easedCenter = smoothstep(0.08, portfolioSnapTargetProgress, progress);
+    const easedSettle = smoothstep(0.52, portfolioSnapTargetProgress, progress);
 
     const clothEnergy = 1 - easedSettle;
 
@@ -621,7 +607,7 @@ if (portfolioReveal && portfolioInner) {
     const y = mix(11, 0, easedCenter);
     const rotate = mix(-7, 0, easedCenter);
     const opacity = mix(0.18, 1, easedEntry);
-    const radius = mix(44, 28, smoothstep(0.45, 0.9, progress));
+    const radius = mix(44, 28, smoothstep(0.45, portfolioSnapTargetProgress, progress));
 
     const displacementScale = clothEnergy * clothEnergy * 46;
 
@@ -636,7 +622,7 @@ if (portfolioReveal && portfolioInner) {
     portfolioInner.style.setProperty("--reveal-opacity", opacity.toFixed(4));
     portfolioInner.style.setProperty("--reveal-radius", `${radius.toFixed(1)}px`);
 
-    if (progress > 0.88) {
+    if (progress >= portfolioSnapTargetProgress - 0.01) {
       portfolioInner.classList.add("is-full");
     } else {
       portfolioInner.classList.remove("is-full");
@@ -656,6 +642,17 @@ if (portfolioReveal && portfolioInner) {
     return { rect, totalScroll, progress, documentTop };
   };
 
+  const getWorkHeadingTop = () => {
+    const target = workHeading || workSection;
+    if (!target) return 0;
+
+    const header = document.querySelector(".site-header");
+    const offset = header ? header.getBoundingClientRect().height + 16 : 0;
+    const rect = target.getBoundingClientRect();
+
+    return Math.max(0, window.scrollY + rect.top - offset);
+  };
+
   const snapPortfolioReveal = () => {
     portfolioSnapTimer = 0;
 
@@ -666,17 +663,22 @@ if (portfolioReveal && portfolioInner) {
 
     const { rect, totalScroll, progress, documentTop } = state;
     const isWithinReveal = rect.top < window.innerHeight * 0.86 && rect.bottom > window.innerHeight * 0.18;
-    const isBetweenStops = progress > 0.015 && progress < 0.82;
+    const isScrollingDown = portfolioScrollDirection >= 0;
+    const isBetweenStops = isScrollingDown
+      ? progress > 0.015 && progress < 0.82
+      : progress > -0.14 && progress < 0.82;
 
     if (!isWithinReveal || !isBetweenStops) return;
 
-    const isScrollingDown = portfolioScrollDirection >= 0;
-    const targetProgress = isScrollingDown || progress > 0.36 ? 0.72 : 0;
-    if (Math.abs(progress - targetProgress) < 0.045) return;
+    const targetTop = isScrollingDown
+      ? documentTop + totalScroll * portfolioSnapTargetProgress
+      : getWorkHeadingTop();
+
+    if (Math.abs(window.scrollY - targetTop) < 24) return;
 
     portfolioIsSnapping = true;
     window.scrollTo({
-      top: documentTop + totalScroll * targetProgress,
+      top: targetTop,
       behavior: "smooth",
     });
 
@@ -750,98 +752,9 @@ const setActiveSection = (sectionId) => {
   });
 };
 
-const headerOffset = () => {
-  const header = document.querySelector(".site-header");
-  return header ? header.getBoundingClientRect().height + 16 : 0;
-};
-
-let sectionSnapTimer = 0;
-let sectionSnapIsActive = false;
-let lastSectionInputAt = performance.now();
-
-const markSectionInput = () => {
-  lastSectionInputAt = performance.now();
-  if (sectionSnapTimer) {
-    window.clearTimeout(sectionSnapTimer);
-    sectionSnapTimer = 0;
-  }
-};
-
-const getSectionSnapTargets = () => {
-  const offset = headerOffset();
-  const targets = [...sectionItems].map((section) => {
-    const rect = section.getBoundingClientRect();
-    const sectionTop = window.scrollY + rect.top;
-    const targetTop = Math.max(0, sectionTop - offset);
-
-    return {
-      id: section.dataset.section,
-      top: targetTop,
-      distance: Math.abs(window.scrollY - targetTop),
-    };
-  });
-
-  if (portfolioReveal) {
-    const rect = portfolioReveal.getBoundingClientRect();
-    const totalScroll = rect.height - window.innerHeight;
-    if (totalScroll > 0) {
-      const top = Math.max(0, window.scrollY + rect.top + totalScroll * 0.72);
-      targets.push({
-        id: "portfolio",
-        top,
-        distance: Math.abs(window.scrollY - top),
-      });
-    }
-  }
-
-  return targets;
-};
-
-const snapToNearestSection = () => {
-  sectionSnapTimer = 0;
-
-  if (sectionSnapIsActive || prefersReducedMotion.matches || document.documentElement.classList.contains("is-entry-locked")) {
-    return;
-  }
-
-  const timeSinceInput = performance.now() - lastSectionInputAt;
-  if (timeSinceInput < 260) {
-    sectionSnapTimer = window.setTimeout(snapToNearestSection, 260 - timeSinceInput);
-    return;
-  }
-
-  const targets = getSectionSnapTargets()
-    .filter((target) => target.id && Number.isFinite(target.top))
-    .sort((a, b) => a.distance - b.distance);
-  const nearest = targets[0];
-
-  if (!nearest || nearest.distance < Math.min(52, window.innerHeight * 0.06)) return;
-
-  sectionSnapIsActive = true;
-  window.scrollTo({
-    top: nearest.top,
-    behavior: "smooth",
-  });
-
-  window.setTimeout(() => {
-    sectionSnapIsActive = false;
-  }, 620);
-};
-
-const scheduleSectionSnap = () => {
-  if (sectionSnapTimer) {
-    window.clearTimeout(sectionSnapTimer);
-  }
-  sectionSnapTimer = window.setTimeout(snapToNearestSection, 280);
-};
-
 updateScrollProgress();
 setActiveSection("home");
 setupCursorWarpLayer();
-
-["wheel", "touchstart", "touchmove", "pointerdown", "keydown"].forEach((eventName) => {
-  window.addEventListener(eventName, markSectionInput, { passive: true });
-});
 
 window.addEventListener("pointermove", (event) => {
   const dx = pointer.hasMoved ? event.clientX - pointer.px : 0;
@@ -969,11 +882,9 @@ animateCursor();
 
 window.addEventListener("scroll", () => {
   updateScrollProgress();
-  scheduleSectionSnap();
 }, { passive: true });
 window.addEventListener("resize", () => {
   updateScrollProgress();
-  markSectionInput();
 });
 
 if ("IntersectionObserver" in window) {
