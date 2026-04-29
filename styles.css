@@ -427,7 +427,7 @@ html.has-fine-pointer .entry-hold {
     transform: translate(-50%, -50%) scale(24);
   }
 
-  64% {
+  74% {
     opacity: 1;
     transform: translate(-50%, -50%) scale(24);
   }
@@ -443,7 +443,7 @@ html.has-fine-pointer .entry-hold {
     opacity: 1;
   }
 
-  62% {
+  72% {
     opacity: 1;
   }
 
