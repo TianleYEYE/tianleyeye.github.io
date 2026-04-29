@@ -1,10 +1,10 @@
 :root {
   color-scheme: light;
-  --font-body: "Noto Serif CJK SC", "Source Han Serif SC", "Songti SC", STSong, SimSun, Georgia, serif;
-  --font-heading: "Songti SC", STSong, "Noto Serif CJK SC", "Source Han Serif SC", "Times New Roman", serif;
-  --font-display: "Bodoni 72 Display", "Bodoni 72", Didot, "Times New Roman", "Songti SC", STSong, serif;
-  --font-latin: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Inter", "Avenir Next", "Helvetica Neue", Arial, sans-serif;
-  --font-latin-display: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Inter Tight", "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", STSong, SimSun, Georgia, serif;
+  --font-heading: "Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", STSong, "Times New Roman", serif;
+  --font-display: "Source Han Serif SC", "Noto Serif CJK SC", "Bodoni 72 Display", "Bodoni 72", Didot, "Times New Roman", serif;
+  --font-latin: "Source Han Sans SC", "Noto Sans CJK SC", "SF Pro Text", -apple-system, BlinkMacSystemFont, "Inter", "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+  --font-latin-display: "Source Han Sans SC", "Noto Sans CJK SC", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Inter Tight", "Avenir Next", "Helvetica Neue", Arial, sans-serif;
   --font-ui: var(--font-latin);
   --bg: #f7f5ef;
   --surface: rgba(255, 255, 250, 0.8);
@@ -776,6 +776,12 @@ body.theme-night .section-orbit {
   --orbit-track: rgba(230, 225, 215, 0.22);
 }
 
+@media (max-width: 1180px) {
+  .side-type {
+    display: none;
+  }
+}
+
 .side-type {
   position: fixed;
   top: 50%;
@@ -1129,7 +1135,7 @@ h3 {
   grid-row: 3;
   max-width: 60rem;
   color: var(--text);
-  font-size: clamp(1.08rem, 1.85vw, 1.7rem);
+  font-size: clamp(0.98rem, 1.5vw, 1.36rem);
   font-weight: 650;
 }
 
@@ -1531,6 +1537,139 @@ body.theme-night .portrait {
   text-transform: uppercase;
 }
 
+.portfolio-reveal {
+  position: relative;
+  height: 200vh;
+  pointer-events: none;
+}
+
+.portfolio-reveal-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.portfolio-reveal-viewport {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  perspective: 1200px;
+}
+
+.portfolio-reveal-inner {
+  --reveal-scale: 0.42;
+  --reveal-x: -24vw;
+  --reveal-y: 0;
+  --reveal-radius: 12px;
+  --reveal-opacity: 0;
+  width: 80vw;
+  max-width: 1200px;
+  padding: clamp(1.5rem, 3vw, 2.5rem);
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--line));
+  border-radius: var(--reveal-radius);
+  background: var(--surface-strong);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.08);
+  transform: scale(var(--reveal-scale)) translateX(var(--reveal-x)) translateY(var(--reveal-y));
+  opacity: var(--reveal-opacity);
+  will-change: transform, opacity;
+  pointer-events: auto;
+}
+
+.portfolio-reveal-inner.is-full {
+  border-color: color-mix(in srgb, var(--accent) 32%, var(--line));
+  box-shadow:
+    0 32px 100px color-mix(in srgb, var(--accent) 12%, transparent),
+    0 8px 32px rgba(0, 0, 0, 0.06);
+}
+
+.marquee-track {
+  display: flex;
+  gap: clamp(0.65rem, 1.2vw, 1rem);
+  width: max-content;
+  animation: marqueeScroll 22s linear infinite;
+}
+
+.marquee-track.is-paused {
+  animation-play-state: paused;
+}
+
+@keyframes marqueeScroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.portfolio-slide {
+  flex: 0 0 auto;
+  width: clamp(10rem, 18vw, 15rem);
+  margin: 0;
+  display: grid;
+  gap: 0.55rem;
+  transition: transform 320ms cubic-bezier(0.16, 1, 0.3, 1), opacity 320ms ease;
+  cursor: default;
+}
+
+.portfolio-slide:hover {
+  transform: scale(1.12);
+  z-index: 2;
+}
+
+.portfolio-slide > div {
+  aspect-ratio: 4 / 3;
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--accent) 26%, transparent), transparent 42%),
+    linear-gradient(24deg, transparent 0 44%, color-mix(in srgb, var(--coral) 22%, transparent) 44% 62%, transparent 62%),
+    radial-gradient(circle at 72% 26%, color-mix(in srgb, var(--text) 12%, transparent) 0 0.45rem, transparent 0.5rem),
+    color-mix(in srgb, var(--surface-strong) 72%, transparent);
+  transition: border-color 220ms ease, box-shadow 220ms ease;
+}
+
+.portfolio-slide:hover > div {
+  border-color: color-mix(in srgb, var(--accent) 52%, transparent);
+  box-shadow: 0 8px 28px color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.portfolio-placeholder-b > div {
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--mint) 22%, transparent) 0 18%, transparent 18%),
+    repeating-linear-gradient(180deg, color-mix(in srgb, var(--text) 16%, transparent) 0 1px, transparent 1px 1.1rem),
+    color-mix(in srgb, var(--surface-strong) 76%, transparent);
+}
+
+.portfolio-placeholder-c > div {
+  background:
+    radial-gradient(circle at 30% 34%, color-mix(in srgb, var(--coral) 28%, transparent) 0 18%, transparent 19%),
+    linear-gradient(145deg, transparent 0 48%, color-mix(in srgb, var(--accent) 24%, transparent) 48% 64%, transparent 64%),
+    color-mix(in srgb, var(--surface-strong) 78%, transparent);
+}
+
+.portfolio-placeholder-d > div {
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--sun) 20%, transparent) 0 24%, transparent 24%),
+    radial-gradient(circle at 65% 72%, color-mix(in srgb, var(--mint) 18%, transparent) 0 16%, transparent 17%),
+    color-mix(in srgb, var(--surface-strong) 74%, transparent);
+}
+
+.portfolio-slide figcaption {
+  color: var(--muted);
+  font-family: var(--font-latin);
+  font-size: 0.72rem;
+  font-weight: 680;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .contact-section {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -1556,7 +1695,7 @@ body.theme-night .portrait {
 }
 
 .contact-section > div:first-child h2 {
-  max-width: 8ch;
+  max-width: 5em;
   margin-top: clamp(0.4rem, 1.2vw, 0.9rem);
 }
 
@@ -1936,8 +2075,23 @@ body.theme-night .contact-links a {
     gap: 0.45rem;
   }
 
+  .portfolio-slide {
+    width: clamp(8rem, 38vw, 12rem);
+  }
+
   .project-card span {
     justify-self: start;
+  }
+
+  .portfolio-reveal {
+    height: 160vh;
+  }
+
+  .portfolio-reveal-inner {
+    --reveal-scale: 0.38;
+    --reveal-x: -16vw;
+    width: 92vw;
+    padding: 1rem;
   }
 
   .project-card:first-child {

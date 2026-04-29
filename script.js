@@ -571,6 +571,66 @@ if (entryHold) {
   });
 }
 
+const portfolioReveal = document.querySelector("[data-portfolio-reveal]");
+const portfolioInner = document.querySelector("[data-portfolio-inner]");
+
+if (portfolioReveal && portfolioInner) {
+  const marqueeTrack = portfolioInner.querySelector("[data-marquee-track]");
+
+  if (marqueeTrack) {
+    const originalSlides = [...marqueeTrack.querySelectorAll(".portfolio-slide")];
+    originalSlides.forEach((slide) => {
+      const clone = slide.cloneNode(true);
+      marqueeTrack.append(clone);
+    });
+
+    marqueeTrack.addEventListener("pointerenter", () => {
+      marqueeTrack.classList.add("is-paused");
+    });
+
+    marqueeTrack.addEventListener("pointerleave", () => {
+      marqueeTrack.classList.remove("is-paused");
+    });
+  }
+
+  const updatePortfolioReveal = () => {
+    const rect = portfolioReveal.getBoundingClientRect();
+    const viewportH = window.innerHeight;
+    const totalScroll = rect.height - viewportH;
+
+    if (totalScroll <= 0) return;
+
+    const scrolled = -rect.top;
+    const progress = clamp(scrolled / totalScroll);
+
+    const easedEntry = smoothstep(0, 0.35, progress);
+    const easedScale = smoothstep(0.08, 0.65, progress);
+    const easedCenter = smoothstep(0.15, 0.75, progress);
+
+    const scale = mix(0.42, 1, easedScale);
+    const x = mix(-24, 0, easedCenter);
+    const y = mix(8, 0, easedCenter);
+    const opacity = easedEntry;
+    const radius = mix(12, 0, smoothstep(0.5, 0.85, progress));
+
+    portfolioInner.style.setProperty("--reveal-scale", scale.toFixed(4));
+    portfolioInner.style.setProperty("--reveal-x", `${x.toFixed(2)}vw`);
+    portfolioInner.style.setProperty("--reveal-y", `${y.toFixed(2)}px`);
+    portfolioInner.style.setProperty("--reveal-opacity", opacity.toFixed(4));
+    portfolioInner.style.setProperty("--reveal-radius", `${radius.toFixed(1)}px`);
+
+    if (progress > 0.85) {
+      portfolioInner.classList.add("is-full");
+    } else {
+      portfolioInner.classList.remove("is-full");
+    }
+  };
+
+  window.addEventListener("scroll", updatePortfolioReveal, { passive: true });
+  window.addEventListener("resize", updatePortfolioReveal);
+  updatePortfolioReveal();
+}
+
 const setupCursorWarpLayer = () => {
   if (!finePointer.matches || cursorWarpLayer) return;
 

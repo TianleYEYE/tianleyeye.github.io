@@ -8,7 +8,7 @@
       name="description"
       content="Tian Le 的个人网站，展示个人简介、研究方向、项目和联系方式。"
     />
-    <link rel="stylesheet" href="styles.css?v=20260429p" />
+    <link rel="stylesheet" href="styles.css?v=20260429t" />
   </head>
   <body>
     <div class="entry-gate" data-entry-gate>
@@ -153,11 +153,38 @@
             <p>整理课程、阅读、实验和技术实践中的关键收获。</p>
             <span>Notes</span>
           </article>
-          <article class="project-card" data-tilt data-reveal data-reveal-side="right">
+          <article class="project-card project-card-expandable" data-tilt data-reveal data-reveal-side="right">
             <h3>作品集</h3>
             <p>用于展示之后完成的应用、研究、设计或开源项目。</p>
             <span>Portfolio</span>
           </article>
+        </div>
+
+        <div class="portfolio-reveal" data-portfolio-reveal>
+          <div class="portfolio-reveal-sticky" data-portfolio-sticky>
+            <div class="portfolio-reveal-viewport" data-portfolio-viewport>
+              <div class="portfolio-reveal-inner" data-portfolio-inner>
+                <div class="marquee-track" data-marquee-track>
+                  <figure class="portfolio-slide portfolio-placeholder-a">
+                    <div aria-hidden="true"></div>
+                    <figcaption>Application Study</figcaption>
+                  </figure>
+                  <figure class="portfolio-slide portfolio-placeholder-b">
+                    <div aria-hidden="true"></div>
+                    <figcaption>Research Notes</figcaption>
+                  </figure>
+                  <figure class="portfolio-slide portfolio-placeholder-c">
+                    <div aria-hidden="true"></div>
+                    <figcaption>Design Draft</figcaption>
+                  </figure>
+                  <figure class="portfolio-slide portfolio-placeholder-d">
+                    <div aria-hidden="true"></div>
+                    <figcaption>Open Source</figcaption>
+                  </figure>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -202,6 +229,6 @@
       <span>Tian Le. Built with care.</span>
     </footer>
 
-    <script src="script.js?v=20260429p"></script>
+    <script src="script.js?v=20260429t"></script>
   </body>
 </html>
