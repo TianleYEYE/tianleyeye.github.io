@@ -314,6 +314,27 @@ const getEntryTransitionColor = () => {
   return rgb(mixRgb(readableText, accentMix, 0.16));
 };
 
+const getDiagonalStripeColor = () => {
+  const alpha = mix(0.08, 0.018, smoothstep(18.25, 21, selectedHour));
+  return rgba(themeState.css.coral, alpha);
+};
+
+const getBackdropState = () => {
+  const nightAmount = smoothstep(18.25, 21, selectedHour);
+  const gridColor = [
+    ...mixRgb([21, 25, 29], [230, 225, 215], nightAmount),
+    mix(0.032, 0.018, nightAmount),
+  ];
+
+  return {
+    gridLine: rgba(gridColor.slice(0, 3), gridColor[3]),
+    gridSize: `${mix(42, 34, nightAmount).toFixed(2)}px`,
+    ambientGlow: rgba(themeState.css.accent, 0.1 * nightAmount),
+    ambientTop: rgba(themeState.css.pageBg, mix(0.38, 0.1, nightAmount)),
+    ambientBottom: rgba(themeState.css.pageBg, mix(0.56, 0.22, nightAmount)),
+  };
+};
+
 const getSystemHour = () => {
   const now = new Date();
   return now.getHours() + now.getMinutes() / 60;
@@ -369,6 +390,7 @@ const applyVisualTheme = () => {
   themeState = getThemeState(selectedHour);
   visualTheme = getThemeName(selectedHour);
   const readableColors = getReadableColors(selectedHour);
+  const backdropState = getBackdropState();
   document.body.classList.remove("theme-day", "theme-dusk", "theme-night");
   document.body.classList.add(`theme-${visualTheme}`);
   document.body.style.setProperty("--page-bg", rgb(themeState.css.pageBg));
@@ -381,6 +403,12 @@ const applyVisualTheme = () => {
   document.body.style.setProperty("--muted", rgb(readableColors.muted));
   document.body.style.setProperty("--line", rgba(readableColors.line.slice(0, 3), readableColors.line[3]));
   document.body.style.setProperty("--entry-transition-color", getEntryTransitionColor());
+  document.body.style.setProperty("--diagonal-stripe", getDiagonalStripeColor());
+  document.body.style.setProperty("--grid-line", backdropState.gridLine);
+  document.body.style.setProperty("--grid-size", backdropState.gridSize);
+  document.body.style.setProperty("--ambient-glow", backdropState.ambientGlow);
+  document.body.style.setProperty("--ambient-top", backdropState.ambientTop);
+  document.body.style.setProperty("--ambient-bottom", backdropState.ambientBottom);
   document.body.style.setProperty("--accent", rgb(themeState.css.accent));
   document.body.style.setProperty("--accent-strong", rgb(themeState.css.accentStrong));
   document.body.style.setProperty("--coral", rgb(themeState.css.coral));

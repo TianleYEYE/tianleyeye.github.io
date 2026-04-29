@@ -23,6 +23,12 @@
   --header-bg: rgba(255, 255, 250, 0.84);
   --cursor-glow: rgba(0, 87, 255, 0.22);
   --entry-transition-color: #090a0d;
+  --diagonal-stripe: rgba(255, 43, 109, 0.08);
+  --grid-line: rgba(21, 25, 29, 0.032);
+  --grid-size: 42px;
+  --ambient-glow: rgba(0, 87, 255, 0);
+  --ambient-top: rgba(242, 239, 231, 0.38);
+  --ambient-bottom: rgba(242, 239, 231, 0.56);
 }
 
 body.theme-day {
@@ -115,9 +121,9 @@ body::before {
   z-index: -4;
   pointer-events: none;
   background:
-    linear-gradient(90deg, rgba(21, 25, 29, 0.032) 1px, transparent 1px),
-    linear-gradient(rgba(21, 25, 29, 0.032) 1px, transparent 1px);
-  background-size: 42px 42px;
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(var(--grid-line) 1px, transparent 1px);
+  background-size: var(--grid-size) var(--grid-size);
   opacity: 0.72;
   filter: blur(0.15px);
   mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.62), rgba(0, 0, 0, 0.08));
@@ -130,23 +136,11 @@ body::after {
   z-index: -2;
   pointer-events: none;
   background:
-    linear-gradient(118deg, transparent 0 53%, color-mix(in srgb, var(--coral) 8%, transparent) 53% 66%, transparent 66%),
-    linear-gradient(180deg, color-mix(in srgb, var(--page-bg) 38%, transparent), color-mix(in srgb, var(--page-bg) 56%, transparent));
+    linear-gradient(118deg, transparent 0 53%, var(--diagonal-stripe) 53% 66%, transparent 66%),
+    radial-gradient(circle at 50% 18%, var(--ambient-glow), transparent 26rem),
+    linear-gradient(180deg, var(--ambient-top), var(--ambient-bottom));
   backdrop-filter: blur(7px) saturate(0.82);
   -webkit-backdrop-filter: blur(7px) saturate(0.82);
-}
-
-body.theme-night::before {
-  background:
-    linear-gradient(90deg, rgba(230, 225, 215, 0.018) 1px, transparent 1px),
-    linear-gradient(rgba(230, 225, 215, 0.018) 1px, transparent 1px);
-  background-size: 34px 34px;
-}
-
-body.theme-night::after {
-  background:
-    radial-gradient(circle at 50% 18%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 26rem),
-    linear-gradient(180deg, rgba(18, 23, 32, 0.1), rgba(18, 23, 32, 0.22));
 }
 
 a {
@@ -427,7 +421,7 @@ html.has-fine-pointer .entry-hold {
     transform: translate(-50%, -50%) scale(24);
   }
 
-  76% {
+  60% {
     opacity: 1;
     transform: translate(-50%, -50%) scale(24);
   }
@@ -443,7 +437,7 @@ html.has-fine-pointer .entry-hold {
     opacity: 1;
   }
 
-  74% {
+  58% {
     opacity: 1;
   }
 
