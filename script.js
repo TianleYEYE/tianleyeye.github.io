@@ -3,7 +3,7 @@ const entryGate = document.querySelector("[data-entry-gate]");
 const entryHold = document.querySelector("[data-entry-hold]");
 const cursorLight = document.querySelector(".cursor-light");
 const cursorRing = document.querySelector(".cursor-ring");
-const cursorFlowCanvas = null;
+const cursorFlowCanvas = document.querySelector(".cursor-flow");
 const emailLink = document.querySelector("[data-copy-email]");
 const tiltItems = document.querySelectorAll("[data-tilt]");
 const revealItems = document.querySelectorAll("[data-reveal]");
@@ -40,8 +40,8 @@ let entryProgress = 0;
 let entryIsHolding = false;
 let entryIsComplete = false;
 let entryLastTime = 0;
-const entryHoldDuration = 2300;
-const entryReleaseDuration = 1450;
+const entryHoldDuration = 1200;
+const entryReleaseDuration = 700;
 const entryMeterLength = 314.16;
 
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
@@ -574,42 +574,82 @@ if (entryHold) {
 
 const portfolioReveal = document.querySelector("[data-portfolio-reveal]");
 const portfolioInner = document.querySelector("[data-portfolio-inner]");
-const workSection = document.querySelector("#work");
-const workHeading = workSection?.querySelector(".section-heading");
+const portfolioVideo = document.querySelector(".portfolio-video");
 const portfolioSnapTargetProgress = 0.72;
 
 if (portfolioReveal && portfolioInner) {
   const clothDisplacement = document.querySelector("#cloth-warp-filter feDisplacementMap");
-  let portfolioSnapTimer = 0;
-  let portfolioIsSnapping = false;
-  let lastPortfolioScrollY = window.scrollY;
-  let portfolioScrollDirection = 1;
+  const portfolioClipStart = [
+    [6.5, 17],
+    [18, 13],
+    [47, 22],
+    [73, 11],
+    [88, 4.5],
+    [98.5, 6],
+    [100, 9.5],
+    [94.5, 31],
+    [85, 52],
+    [72, 90],
+    [66, 94],
+    [49, 99],
+    [22, 86],
+    [3, 82],
+    [0, 60],
+    [4.5, 43],
+    [6.5, 31],
+  ];
+  const portfolioClipEnd = [
+    [0, 0],
+    [16.5, 0],
+    [33, 0],
+    [49.5, 0],
+    [66, 0],
+    [82.5, 0],
+    [100, 0],
+    [100, 16.5],
+    [100, 33],
+    [100, 49.5],
+    [100, 66],
+    [100, 82.5],
+    [100, 100],
+    [66, 100],
+    [33, 100],
+    [0, 100],
+    [0, 50],
+  ];
+
+  const formatPortfolioClip = (progress) => {
+    const points = portfolioClipStart.map(([startX, startY], index) => {
+      const [endX, endY] = portfolioClipEnd[index];
+      return `${mix(startX, endX, progress).toFixed(2)}% ${mix(startY, endY, progress).toFixed(2)}%`;
+    });
+
+    return `polygon(${points.join(", ")})`;
+  };
 
   const updatePortfolioReveal = () => {
     const rect = portfolioReveal.getBoundingClientRect();
     const viewportH = window.innerHeight;
-    const totalScroll = rect.height - viewportH;
-
-    if (totalScroll <= 0) return;
-
-    const scrolled = -rect.top;
-    const progress = clamp(scrolled / totalScroll);
+    const revealStart = viewportH * 0.9;
+    const revealEnd = viewportH * 0.24;
+    const progress = clamp((revealStart - rect.top) / Math.max(1, revealStart - revealEnd));
 
     const easedEntry = smoothstep(0, 0.16, progress);
     const easedScale = smoothstep(0.03, portfolioSnapTargetProgress, progress);
     const easedCenter = smoothstep(0.08, portfolioSnapTargetProgress, progress);
     const easedSettle = smoothstep(0.52, portfolioSnapTargetProgress, progress);
+    const easedRectangle = smoothstep(0.42, 0.76, progress);
 
     const clothEnergy = 1 - easedSettle;
 
-    const scale = mix(0.32, 1.04, easedScale);
-    const x = mix(-34, 0, easedCenter);
-    const y = mix(11, 0, easedCenter);
-    const rotate = mix(-7, 0, easedCenter);
+    const scale = mix(0.42, 0.96, easedScale);
+    const x = mix(-38, 1, easedCenter);
+    const y = mix(8, 0, easedCenter);
+    const rotate = mix(-8, 0, easedRectangle);
+    const skew = mix(-5, 0, easedRectangle);
     const opacity = mix(0.18, 1, easedEntry);
-    const radius = mix(44, 28, smoothstep(0.45, portfolioSnapTargetProgress, progress));
 
-    const displacementScale = clothEnergy * clothEnergy * 46;
+    const displacementScale = (1 - easedRectangle) * clothEnergy * clothEnergy * 68;
 
     if (clothDisplacement) {
       clothDisplacement.setAttribute("scale", displacementScale.toFixed(1));
@@ -619,90 +659,58 @@ if (portfolioReveal && portfolioInner) {
     portfolioInner.style.setProperty("--reveal-x", `${x.toFixed(2)}vw`);
     portfolioInner.style.setProperty("--reveal-y", `${y.toFixed(2)}vh`);
     portfolioInner.style.setProperty("--reveal-rotate", `${rotate.toFixed(2)}deg`);
+    portfolioInner.style.setProperty("--reveal-skew", `${skew.toFixed(2)}deg`);
     portfolioInner.style.setProperty("--reveal-opacity", opacity.toFixed(4));
-    portfolioInner.style.setProperty("--reveal-radius", `${radius.toFixed(1)}px`);
+    portfolioInner.style.clipPath = formatPortfolioClip(easedRectangle);
 
-    if (progress >= portfolioSnapTargetProgress - 0.01) {
+    if (easedRectangle >= 0.995) {
       portfolioInner.classList.add("is-full");
     } else {
       portfolioInner.classList.remove("is-full");
     }
   };
 
-  const getPortfolioScrollState = () => {
-    const rect = portfolioReveal.getBoundingClientRect();
-    const viewportH = window.innerHeight;
-    const totalScroll = rect.height - viewportH;
-
-    if (totalScroll <= 0) return null;
-
-    const progress = clamp(-rect.top / totalScroll);
-    const documentTop = window.scrollY + rect.top;
-
-    return { rect, totalScroll, progress, documentTop };
-  };
-
-  const getWorkHeadingTop = () => {
-    const target = workHeading || workSection;
-    if (!target) return 0;
-
-    const header = document.querySelector(".site-header");
-    const offset = header ? header.getBoundingClientRect().height + 16 : 0;
-    const rect = target.getBoundingClientRect();
-
-    return Math.max(0, window.scrollY + rect.top - offset);
-  };
-
-  const snapPortfolioReveal = () => {
-    portfolioSnapTimer = 0;
-
-    if (portfolioIsSnapping || prefersReducedMotion.matches) return;
-
-    const state = getPortfolioScrollState();
-    if (!state) return;
-
-    const { rect, totalScroll, progress, documentTop } = state;
-    const isWithinReveal = rect.top < window.innerHeight * 0.86 && rect.bottom > window.innerHeight * 0.18;
-    const isScrollingDown = portfolioScrollDirection >= 0;
-    const isBetweenStops = isScrollingDown
-      ? progress > 0.015 && progress < 0.82
-      : progress > -0.14 && progress < 0.82;
-
-    if (!isWithinReveal || !isBetweenStops) return;
-
-    const targetTop = isScrollingDown
-      ? documentTop + totalScroll * portfolioSnapTargetProgress
-      : getWorkHeadingTop();
-
-    if (Math.abs(window.scrollY - targetTop) < 24) return;
-
-    portfolioIsSnapping = true;
-    window.scrollTo({
-      top: targetTop,
-      behavior: "smooth",
-    });
-
-    window.setTimeout(() => {
-      portfolioIsSnapping = false;
-    }, 520);
-  };
-
-  const schedulePortfolioSnap = () => {
-    if (portfolioSnapTimer) {
-      window.clearTimeout(portfolioSnapTimer);
-    }
-    portfolioSnapTimer = window.setTimeout(snapPortfolioReveal, 140);
-  };
-
   window.addEventListener("scroll", () => {
-    const currentScrollY = window.scrollY;
-    portfolioScrollDirection = currentScrollY >= lastPortfolioScrollY ? 1 : -1;
-    lastPortfolioScrollY = currentScrollY;
     updatePortfolioReveal();
-    schedulePortfolioSnap();
   }, { passive: true });
   window.addEventListener("resize", updatePortfolioReveal);
   updatePortfolioReveal();
+}
+
+if (portfolioInner && portfolioVideo) {
+  const playPortfolioFullscreen = async () => {
+    try {
+      portfolioVideo.controls = true;
+      await portfolioVideo.play();
+
+      const fullscreenTarget = portfolioVideo.requestFullscreen ? portfolioVideo : portfolioInner;
+      await fullscreenTarget.requestFullscreen?.();
+    } catch {
+      portfolioVideo.controls = true;
+    }
+  };
+
+  portfolioInner.addEventListener("pointerenter", () => {
+    cursorRing?.classList.add("is-active", "is-portfolio");
+  });
+
+  portfolioInner.addEventListener("pointerleave", () => {
+    cursorRing?.classList.remove("is-active", "is-portfolio");
+  });
+
+  portfolioInner.addEventListener("click", playPortfolioFullscreen);
+  portfolioInner.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      playPortfolioFullscreen();
+    }
+  });
+
+  document.addEventListener("fullscreenchange", () => {
+    if (!document.fullscreenElement) {
+      portfolioVideo.controls = false;
+    }
+  });
 }
 
 const setupCursorWarpLayer = () => {
@@ -765,8 +773,10 @@ window.addEventListener("pointermove", (event) => {
   pointer.px = event.clientX;
   pointer.py = event.clientY;
   pointer.hasMoved = true;
-  document.documentElement.style.setProperty("--hero-shift-x", `${((0.5 - pointer.x) * 1).toFixed(3)}rem`);
-  document.documentElement.style.setProperty("--hero-shift-y", `${((0.5 - pointer.y) * 0.8).toFixed(3)}rem`);
+  if (!prefersReducedMotion.matches) {
+    document.documentElement.style.setProperty("--hero-shift-x", `${((0.5 - pointer.x) * 2.4).toFixed(3)}rem`);
+    document.documentElement.style.setProperty("--hero-shift-y", `${((0.5 - pointer.y) * 1.8).toFixed(3)}rem`);
+  }
 
   if (cursorLight) {
     cursorLight.style.setProperty("--x", `${event.clientX}px`);
@@ -847,6 +857,9 @@ window.addEventListener("blur", () => {
 });
 document.addEventListener("pointerleave", () => cursorWarpLayer?.classList.remove("is-visible"));
 
+let cursorLightLX = window.innerWidth * 0.5;
+let cursorLightLY = window.innerHeight * 0.4;
+
 const animateCursor = () => {
   if (cursorRing && finePointer.matches) {
     const follow = cursorState.visible ? 0.105 : 1;
@@ -873,6 +886,16 @@ const animateCursor = () => {
       cursorWarpLayer.style.setProperty("--warp-scale-y", scaleY.toFixed(3));
       cursorWarpLayer.style.setProperty("--warp-size", `${cursorSize}px`);
     }
+
+    // Smooth cursor light follow
+    if (cursorLight) {
+      cursorLightLX = mix(cursorLightLX, cursorState.dotX, 0.045);
+      cursorLightLY = mix(cursorLightLY, cursorState.dotY, 0.045);
+      cursorLight.style.setProperty("--lx", `${cursorLightLX}px`);
+      cursorLight.style.setProperty("--ly", `${cursorLightLY}px`);
+      const lightSpeed = Math.hypot(cursorState.dotX - cursorLightLX, cursorState.dotY - cursorLightLY);
+      cursorLight.classList.toggle("is-moving", lightSpeed > 4);
+    }
   }
 
   window.requestAnimationFrame(animateCursor);
@@ -880,8 +903,28 @@ const animateCursor = () => {
 
 animateCursor();
 
+const applyScrollParallax = () => {
+  const scrollY = window.scrollY;
+  const viewportH = window.innerHeight;
+  if (!prefersReducedMotion.matches) {
+    const portrait = document.querySelector(".portrait");
+    const heroMeta = document.querySelector(".hero-meta");
+    const heroAINote = document.querySelector(".hero-ai-note");
+    if (portrait) {
+      portrait.style.setProperty("--portrait-roll", `${scrollY * -0.015}deg`);
+    }
+    if (heroMeta) {
+      heroMeta.style.transform = `translateY(${scrollY * -0.06}px)`;
+    }
+    if (heroAINote) {
+      heroAINote.style.transform = `translate3d(-0.4rem, ${0.2 + scrollY * -0.08}rem, 0) rotate(-2deg)`;
+    }
+  }
+};
+
 window.addEventListener("scroll", () => {
   updateScrollProgress();
+  applyScrollParallax();
 }, { passive: true });
 window.addEventListener("resize", () => {
   updateScrollProgress();
@@ -952,10 +995,11 @@ if (cursorFlowCanvas && finePointer.matches) {
   let flowHeight = 0;
   let flowScale = 1;
   let lastFlowTime = 0;
+  let lastFlowDrawTime = 0;
   let idleFrames = 0;
 
   const resizeFlowCanvas = () => {
-    flowScale = Math.min(window.devicePixelRatio || 1, 2);
+    flowScale = Math.min(window.devicePixelRatio || 1, 1);
     flowWidth = window.innerWidth;
     flowHeight = window.innerHeight;
     cursorFlowCanvas.width = Math.floor(flowWidth * flowScale);
@@ -1002,7 +1046,7 @@ if (cursorFlowCanvas && finePointer.matches) {
       phase,
     });
 
-    while (trail.length > 74) {
+    while (trail.length > 32) {
       trail.shift();
     }
   };
@@ -1070,11 +1114,8 @@ if (cursorFlowCanvas && finePointer.matches) {
     flowContext.lineCap = "round";
     flowContext.lineJoin = "round";
 
-    flowContext.filter = "blur(18px)";
-    drawOilFilmBand(alivePoints, time, { width: 1.75, alpha: 0.36, offset: 0, ripple: 9, hueShift: 0 });
-
     flowContext.filter = "blur(6px)";
-    drawOilFilmBand(alivePoints, time, { width: 0.88, alpha: 0.52, offset: 0, ripple: 5, hueShift: 3 });
+    drawOilFilmBand(alivePoints, time, { width: 1.2, alpha: 0.44, offset: 0, ripple: 7, hueShift: 0 });
 
     flowContext.filter = "none";
     drawOilFilmBand(alivePoints, time, { width: 0.18, alpha: 0.48, offset: -8, ripple: 2.5, hueShift: 8 });
@@ -1087,18 +1128,14 @@ if (cursorFlowCanvas && finePointer.matches) {
     const delta = Math.min(34, time - lastFlowTime || 16);
     lastFlowTime = time;
 
-    flowContext.globalCompositeOperation = "source-over";
-    flowContext.clearRect(0, 0, flowWidth, flowHeight);
-
+    // Physics & sampling always run for smooth trail
     if (brush.active) {
       const easing = 1 - Math.pow(0.0018, delta / 1000);
-      const prevX = brush.x;
-      const prevY = brush.y;
       brush.x = mix(brush.x, brush.targetX, easing);
       brush.y = mix(brush.y, brush.targetY, easing);
 
       const distance = Math.hypot(brush.x - brush.lastX, brush.y - brush.lastY);
-      const samples = Math.min(8, Math.ceil(distance / 9));
+      const samples = Math.min(6, Math.ceil(distance / 12));
 
       for (let i = 1; i <= samples; i += 1) {
         const amount = i / samples;
@@ -1123,7 +1160,14 @@ if (cursorFlowCanvas && finePointer.matches) {
       }
     }
 
-    drawOilFilmSkin(getAliveTrail(time), time);
+    // Draw at ~30fps (skip if within 32ms window)
+    const shouldDraw = !lastFlowDrawTime || time - lastFlowDrawTime >= 32;
+    if (shouldDraw) {
+      lastFlowDrawTime = time;
+      flowContext.globalCompositeOperation = "source-over";
+      flowContext.clearRect(0, 0, flowWidth, flowHeight);
+      drawOilFilmSkin(getAliveTrail(time), time);
+    }
 
     if (!reduceFlowMotion.matches) {
       window.requestAnimationFrame(drawCursorFlow);
@@ -1141,9 +1185,10 @@ if (shaderCanvas) {
   let width = 0;
   let height = 0;
   let deviceScale = 1;
+  let lastFieldDrawTime = 0;
 
   const resizeCanvas = () => {
-    deviceScale = Math.min(window.devicePixelRatio || 1, 2);
+    deviceScale = Math.min(window.devicePixelRatio || 1, 1);
     width = window.innerWidth;
     height = window.innerHeight;
     shaderCanvas.width = Math.floor(width * deviceScale);
@@ -1154,6 +1199,15 @@ if (shaderCanvas) {
   };
 
   const drawField = (time = 0) => {
+    // Throttle draw to ~30fps
+    if (lastFieldDrawTime && time - lastFieldDrawTime < 32) {
+      if (!reduceMotion.matches) {
+        window.requestAnimationFrame(drawField);
+      }
+      return;
+    }
+    lastFieldDrawTime = time;
+
     const seconds = time * 0.001;
     const palette = themeState.shader;
     context.clearRect(0, 0, width, height);
@@ -1348,4 +1402,42 @@ if (shaderCanvas) {
   resizeCanvas();
   drawField();
   window.addEventListener("resize", resizeCanvas);
+}
+
+/* ---------- FPS Meter (toggle via ?fps=1 in URL) ---------- */
+const fpsMeter = document.querySelector(".fps-meter");
+const fpsEnabled = new URLSearchParams(window.location.search).has("fps");
+
+if (fpsMeter && fpsEnabled) {
+  fpsMeter.classList.add("is-visible");
+
+  let fpsFrames = 0;
+  let fpsLastTime = performance.now();
+  let fpsCurrent = 0;
+
+  const tickFPS = (now) => {
+    fpsFrames += 1;
+    const elapsed = now - fpsLastTime;
+
+    if (elapsed >= 500) {
+      fpsCurrent = Math.round((fpsFrames / elapsed) * 1000);
+      fpsMeter.textContent = `${fpsCurrent} fps`;
+      fpsMeter.classList.remove("is-good", "is-ok", "is-bad");
+
+      if (fpsCurrent >= 55) {
+        fpsMeter.classList.add("is-good");
+      } else if (fpsCurrent >= 30) {
+        fpsMeter.classList.add("is-ok");
+      } else {
+        fpsMeter.classList.add("is-bad");
+      }
+
+      fpsFrames = 0;
+      fpsLastTime = now;
+    }
+
+    window.requestAnimationFrame(tickFPS);
+  };
+
+  window.requestAnimationFrame(tickFPS);
 }

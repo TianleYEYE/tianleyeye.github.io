@@ -37,7 +37,7 @@
         <feTurbulence type="fractalNoise" baseFrequency="0.018 0.04" numOctaves="2" seed="8">
           <animate attributeName="baseFrequency" dur="4.2s" values="0.014 0.032;0.024 0.048;0.014 0.032" repeatCount="indefinite" />
         </feTurbulence>
-        <feDisplacementMap in="SourceGraphic" scale="8" xChannelSelector="R" yChannelSelector="G" />
+        <feDisplacementMap in="SourceGraphic" scale="12" xChannelSelector="R" yChannelSelector="G" />
       </filter>
       <filter id="cloth-warp-filter" x="-5%" y="-5%" width="110%" height="110%">
         <feTurbulence type="fractalNoise" baseFrequency="0.012 0.022" numOctaves="3" seed="42" result="noise" />
@@ -46,7 +46,15 @@
     </svg>
     <canvas class="shader-field" aria-hidden="true"></canvas>
     <canvas class="cursor-flow" aria-hidden="true"></canvas>
+    <div class="grain-overlay" aria-hidden="true"></div>
+    <div class="ambient-orbs" aria-hidden="true">
+      <span class="orb orb-1"></span>
+      <span class="orb orb-2"></span>
+      <span class="orb orb-3"></span>
+      <span class="orb orb-4"></span>
+    </div>
     <div class="scroll-progress" aria-hidden="true"></div>
+    <div class="fps-meter" aria-hidden="true">-- fps</div>
     <div class="cursor-ring" aria-hidden="true">
       <span class="cursor-distortion"></span>
       <span class="cursor-dot"></span>
@@ -173,7 +181,7 @@
         <div class="portfolio-reveal" data-portfolio-reveal>
           <div class="portfolio-reveal-sticky" data-portfolio-sticky>
             <div class="portfolio-reveal-viewport" data-portfolio-viewport>
-              <div class="portfolio-reveal-inner" data-portfolio-inner>
+              <div class="portfolio-reveal-inner" data-portfolio-inner role="button" tabindex="0" aria-label="全屏播放作品集视频">
                 <video class="portfolio-video" autoplay muted loop playsinline preload="metadata" aria-label="Portfolio video">
                   <source src="assets/portfolio/portfolio.mp4" type="video/mp4" />
                 </video>
