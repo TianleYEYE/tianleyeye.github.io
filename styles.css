@@ -467,6 +467,12 @@ html.has-fine-pointer .entry-hold {
   transform: scale(1.02);
 }
 
+html.is-safari .shader-field {
+  opacity: 0.58;
+  filter: saturate(0.78) contrast(0.96);
+  transform: none;
+}
+
 .cursor-flow {
   position: fixed;
   inset: 0;
@@ -1053,6 +1059,20 @@ body.theme-night .orb {
 
 body.theme-dusk .orb {
   opacity: 0.16;
+}
+
+html.is-safari .orb {
+  filter: blur(28px);
+  opacity: 0.1;
+  animation: none;
+}
+
+html.is-safari .cursor-flow,
+html.is-safari .cursor-warp-layer,
+html.is-safari .cursor-ring,
+html.is-safari .cursor-light,
+html.is-safari .cursor-distortion {
+  display: none !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

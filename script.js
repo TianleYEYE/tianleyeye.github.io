@@ -16,6 +16,8 @@ const themeHourInput = document.querySelector("#theme-hour");
 const themeTimeOutput = document.querySelector("[data-theme-time]");
 const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+const isSafari = /^((?!chrome|android|crios|fxios|edgios).)*safari/i.test(navigator.userAgent);
+const useEnhancedPointer = finePointer.matches && !isSafari;
 const pointer = {
   x: 0.5,
   y: 0.45,
@@ -457,8 +459,12 @@ window.setInterval(() => {
   applyVisualTheme();
 }, 30000);
 
-if (finePointer.matches) {
+if (useEnhancedPointer) {
   document.documentElement.classList.add("has-fine-pointer");
+}
+
+if (isSafari) {
+  document.documentElement.classList.add("is-safari");
 }
 
 if (entryGate && entryHold) {
@@ -714,7 +720,7 @@ if (portfolioInner && portfolioVideo) {
 }
 
 const setupCursorWarpLayer = () => {
-  if (!finePointer.matches || cursorWarpLayer) return;
+  if (!useEnhancedPointer || cursorWarpLayer) return;
 
   cursorWarpLayer = document.createElement("div");
   cursorWarpLayer.className = "cursor-warp-layer";
@@ -778,12 +784,12 @@ window.addEventListener("pointermove", (event) => {
     document.documentElement.style.setProperty("--hero-shift-y", `${((0.5 - pointer.y) * 1.8).toFixed(3)}rem`);
   }
 
-  if (cursorLight) {
+  if (useEnhancedPointer && cursorLight) {
     cursorLight.style.setProperty("--x", `${event.clientX}px`);
     cursorLight.style.setProperty("--y", `${event.clientY}px`);
   }
 
-  if (cursorRing) {
+  if (useEnhancedPointer && cursorRing) {
     cursorState.dotX = event.clientX;
     cursorState.dotY = event.clientY;
     cursorState.angle = Math.atan2(dy, dx);
@@ -793,7 +799,7 @@ window.addEventListener("pointermove", (event) => {
     cursorRing.style.setProperty("--dot-y", `${event.clientY}px`);
   }
 
-  if (cursorWarpLayer) {
+  if (useEnhancedPointer && cursorWarpLayer) {
     cursorWarpLayer.style.setProperty("--warp-x", `${event.clientX}px`);
     cursorWarpLayer.style.setProperty("--warp-y", `${event.clientY}px`);
     cursorWarpLayer.style.setProperty("--warp-angle", `${cursorState.angle}rad`);
@@ -801,7 +807,9 @@ window.addEventListener("pointermove", (event) => {
     cursorWarpLayer.classList.add("is-visible");
   }
 
-  flowPushPoint?.(event.clientX, event.clientY, pointer.speed);
+  if (useEnhancedPointer) {
+    flowPushPoint?.(event.clientX, event.clientY, pointer.speed);
+  }
 });
 
 tiltItems.forEach((item) => {
@@ -861,7 +869,7 @@ let cursorLightLX = window.innerWidth * 0.5;
 let cursorLightLY = window.innerHeight * 0.4;
 
 const animateCursor = () => {
-  if (cursorRing && finePointer.matches) {
+  if (cursorRing && useEnhancedPointer) {
     const follow = cursorState.visible ? 0.105 : 1;
     cursorState.outlineX = mix(cursorState.outlineX, cursorState.dotX, follow);
     cursorState.outlineY = mix(cursorState.outlineY, cursorState.dotY, follow);
@@ -901,7 +909,9 @@ const animateCursor = () => {
   window.requestAnimationFrame(animateCursor);
 };
 
-animateCursor();
+if (useEnhancedPointer) {
+  animateCursor();
+}
 
 const applyScrollParallax = () => {
   const scrollY = window.scrollY;
@@ -977,7 +987,7 @@ if (emailLink) {
   });
 }
 
-if (cursorFlowCanvas && finePointer.matches) {
+if (cursorFlowCanvas && useEnhancedPointer) {
   const flowContext = cursorFlowCanvas.getContext("2d", { alpha: true });
   const reduceFlowMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   const trail = [];
@@ -1186,6 +1196,7 @@ if (shaderCanvas) {
   let height = 0;
   let deviceScale = 1;
   let lastFieldDrawTime = 0;
+  const fieldFrameMs = isSafari ? 66 : 32;
 
   const resizeCanvas = () => {
     deviceScale = Math.min(window.devicePixelRatio || 1, 1);
@@ -1199,8 +1210,8 @@ if (shaderCanvas) {
   };
 
   const drawField = (time = 0) => {
-    // Throttle draw to ~30fps
-    if (lastFieldDrawTime && time - lastFieldDrawTime < 32) {
+    // Throttle draw work. Safari/WebKit is much slower with full-viewport canvas + filters.
+    if (lastFieldDrawTime && time - lastFieldDrawTime < fieldFrameMs) {
       if (!reduceMotion.matches) {
         window.requestAnimationFrame(drawField);
       }
