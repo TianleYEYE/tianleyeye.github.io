@@ -14,10 +14,15 @@ const orbitDots = document.querySelectorAll("[data-orbit-dot]");
 const shaderCanvas = document.querySelector(".shader-field");
 const themeHourInput = document.querySelector("#theme-hour");
 const themeTimeOutput = document.querySelector("[data-theme-time]");
+const notesSection = document.querySelector(".notes-section");
+const notesToggle = document.querySelector("[data-notes-toggle]");
+const notesToggleLabel = document.querySelector("[data-notes-toggle-label]");
+const notesToggleIcon = document.querySelector(".notes-toggle-icon");
 const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 const isSafari = /^((?!chrome|android|crios|fxios|edgios).)*safari/i.test(navigator.userAgent);
 const useEnhancedPointer = finePointer.matches && !isSafari;
+const useGlowEffects = false;
 const pointer = {
   x: 0.5,
   y: 0.45,
@@ -475,6 +480,29 @@ if (year) {
   year.textContent = String(new Date().getFullYear());
 }
 
+const setNotesCollapsed = (isCollapsed) => {
+  if (!notesSection || !notesToggle) return;
+
+  notesSection.classList.toggle("is-collapsed", isCollapsed);
+  notesToggle.setAttribute("aria-expanded", String(!isCollapsed));
+  if (notesToggleLabel) {
+    notesToggleLabel.textContent = isCollapsed ? "展开笔记" : "收起笔记";
+  }
+  if (notesToggleIcon) {
+    notesToggleIcon.textContent = isCollapsed ? "+" : "−";
+  }
+};
+
+if (notesToggle) {
+  notesToggle.addEventListener("click", () => {
+    setNotesCollapsed(!notesSection?.classList.contains("is-collapsed"));
+  });
+
+  document.querySelectorAll('a[href="#ai-reverse-workflow"], a[href="#notes"]').forEach((link) => {
+    link.addEventListener("click", () => setNotesCollapsed(false));
+  });
+}
+
 const setEntryProgress = (progress) => {
   entryProgress = clamp(progress);
   entryHold?.style.setProperty("--entry-progress", entryProgress.toFixed(4));
@@ -720,7 +748,7 @@ if (portfolioInner && portfolioVideo) {
 }
 
 const setupCursorWarpLayer = () => {
-  if (!useEnhancedPointer || cursorWarpLayer) return;
+  if (!useGlowEffects || !useEnhancedPointer || cursorWarpLayer) return;
 
   cursorWarpLayer = document.createElement("div");
   cursorWarpLayer.className = "cursor-warp-layer";
@@ -784,7 +812,7 @@ window.addEventListener("pointermove", (event) => {
     document.documentElement.style.setProperty("--hero-shift-y", `${((0.5 - pointer.y) * 1.8).toFixed(3)}rem`);
   }
 
-  if (useEnhancedPointer && cursorLight) {
+  if (useGlowEffects && useEnhancedPointer && cursorLight) {
     cursorLight.style.setProperty("--x", `${event.clientX}px`);
     cursorLight.style.setProperty("--y", `${event.clientY}px`);
   }
@@ -799,7 +827,7 @@ window.addEventListener("pointermove", (event) => {
     cursorRing.style.setProperty("--dot-y", `${event.clientY}px`);
   }
 
-  if (useEnhancedPointer && cursorWarpLayer) {
+  if (useGlowEffects && useEnhancedPointer && cursorWarpLayer) {
     cursorWarpLayer.style.setProperty("--warp-x", `${event.clientX}px`);
     cursorWarpLayer.style.setProperty("--warp-y", `${event.clientY}px`);
     cursorWarpLayer.style.setProperty("--warp-angle", `${cursorState.angle}rad`);
@@ -807,7 +835,7 @@ window.addEventListener("pointermove", (event) => {
     cursorWarpLayer.classList.add("is-visible");
   }
 
-  if (useEnhancedPointer) {
+  if (useGlowEffects && useEnhancedPointer) {
     flowPushPoint?.(event.clientX, event.clientY, pointer.speed);
   }
 });
@@ -885,7 +913,7 @@ const animateCursor = () => {
     cursorRing.style.setProperty("--cursor-scale-x", scaleX.toFixed(3));
     cursorRing.style.setProperty("--cursor-scale-y", scaleY.toFixed(3));
 
-    if (cursorWarpLayer) {
+    if (useGlowEffects && cursorWarpLayer) {
       const cursorSize = cursorRing.classList.contains("is-active") ? 66 : 50;
       cursorWarpLayer.style.setProperty("--warp-x", `${cursorState.outlineX}px`);
       cursorWarpLayer.style.setProperty("--warp-y", `${cursorState.outlineY}px`);
@@ -896,7 +924,7 @@ const animateCursor = () => {
     }
 
     // Smooth cursor light follow
-    if (cursorLight) {
+    if (useGlowEffects && cursorLight) {
       cursorLightLX = mix(cursorLightLX, cursorState.dotX, 0.045);
       cursorLightLY = mix(cursorLightLY, cursorState.dotY, 0.045);
       cursorLight.style.setProperty("--lx", `${cursorLightLX}px`);
@@ -987,7 +1015,7 @@ if (emailLink) {
   });
 }
 
-if (cursorFlowCanvas && useEnhancedPointer) {
+if (useGlowEffects && cursorFlowCanvas && useEnhancedPointer) {
   const flowContext = cursorFlowCanvas.getContext("2d", { alpha: true });
   const reduceFlowMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   const trail = [];
@@ -1196,7 +1224,7 @@ if (shaderCanvas) {
   let height = 0;
   let deviceScale = 1;
   let lastFieldDrawTime = 0;
-  const fieldFrameMs = isSafari ? 66 : 32;
+  const fieldFrameMs = 96;
 
   const resizeCanvas = () => {
     deviceScale = Math.min(window.devicePixelRatio || 1, 1);
@@ -1263,9 +1291,9 @@ if (shaderCanvas) {
     const bodyX = width * 0.5 + (pointer.x - 0.5) * 24;
     const bodyY = horizon * palette.bodyY;
     const bodyRadius = Math.min(width, height) * palette.bodyScale;
-    const sunGlow = context.createRadialGradient(bodyX, bodyY, 0, bodyX, bodyY, bodyRadius * 1.8);
-    sunGlow.addColorStop(0, rgba(palette.glow[0], palette.glow[1]));
-    sunGlow.addColorStop(0.5, rgba(palette.glow[2], palette.glow[3]));
+    const sunGlow = context.createRadialGradient(bodyX, bodyY, 0, bodyX, bodyY, bodyRadius * 1.25);
+    sunGlow.addColorStop(0, rgba(palette.glow[0], palette.glow[1] * 0.28));
+    sunGlow.addColorStop(0.5, rgba(palette.glow[2], palette.glow[3] * 0.22));
     sunGlow.addColorStop(1, "rgba(176, 127, 139, 0)");
     context.fillStyle = sunGlow;
     context.fillRect(0, 0, width, horizon);
@@ -1397,10 +1425,10 @@ if (shaderCanvas) {
       0,
       pointer.x * width,
       pointer.y * height,
-      Math.max(width, height) * 0.44,
+      Math.max(width, height) * 0.26,
     );
-    glow.addColorStop(0, palette.moonAlpha > 0.5 ? rgba(palette.grid, 0.14) : "rgba(248, 245, 236, 0.3)");
-    glow.addColorStop(0.5, palette.moonAlpha > 0.5 ? rgba(palette.grid, 0.08) : rgba(palette.lanes, 0.08));
+    glow.addColorStop(0, palette.moonAlpha > 0.5 ? rgba(palette.grid, 0.035) : "rgba(248, 245, 236, 0.055)");
+    glow.addColorStop(0.5, palette.moonAlpha > 0.5 ? rgba(palette.grid, 0.02) : rgba(palette.lanes, 0.018));
     glow.addColorStop(1, rgba(palette.lanes, 0));
     context.fillStyle = glow;
     context.fillRect(0, 0, width, height);

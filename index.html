@@ -8,7 +8,7 @@
       name="description"
       content="Tian Le 的个人网站，展示个人简介、研究方向、项目和联系方式。"
     />
-    <link rel="stylesheet" href="styles.css?v=20260429ag" />
+    <link rel="stylesheet" href="styles.css?v=20260521notes2" />
   </head>
   <body>
     <div class="entry-gate" data-entry-gate>
@@ -65,6 +65,7 @@
       <span data-orbit-dot="home"></span>
       <span data-orbit-dot="about"></span>
       <span data-orbit-dot="work"></span>
+      <span data-orbit-dot="notes"></span>
       <span data-orbit-dot="contact"></span>
     </div>
     <div class="side-type side-type-left" aria-hidden="true">PERSONAL INDEX / 2026</div>
@@ -80,6 +81,7 @@
       <nav class="nav" aria-label="主导航">
         <a href="#about">关于</a>
         <a href="#work">项目</a>
+        <a href="#notes">笔记</a>
         <a href="#contact">联系</a>
       </nav>
     </header>
@@ -167,7 +169,7 @@
             <span>Website</span>
           </article>
           <article class="project-card" data-tilt data-reveal data-reveal-side="right">
-            <h3>学习笔记</h3>
+            <h3><a href="#notes" data-magnetic>学习笔记</a></h3>
             <p>整理课程、阅读、实验和技术实践中的关键收获。</p>
             <span>Notes</span>
           </article>
@@ -204,6 +206,259 @@
         </div>
       </div>
 
+      <section id="notes" class="section notes-section" data-section="notes">
+        <div class="section-heading" data-reveal data-reveal-side="left">
+          <p class="eyebrow">Notes</p>
+          <p class="section-note">A reading room for technical logs, reverse engineering experiments, and AI-assisted workflows.</p>
+          <h2>笔记展示区</h2>
+          <div class="notes-heading-actions">
+            <button class="notes-toggle" type="button" data-notes-toggle aria-expanded="true" aria-controls="ai-reverse-workflow">
+              <span class="notes-toggle-icon" aria-hidden="true">−</span>
+              <span data-notes-toggle-label>收起笔记</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="notes-layout">
+          <aside class="notes-index" data-reveal data-reveal-side="left" aria-label="笔记主题">
+            <p class="notes-index-label">当前主题</p>
+            <a class="notes-theme-card" href="#ai-reverse-workflow" data-magnetic>
+              <span>AI辅助逆向工作流学习</span>
+              <small>Chapter 01 / FF7R UE4SS + 资产提取</small>
+            </a>
+          </aside>
+
+          <article id="ai-reverse-workflow" class="note-article" data-reveal data-reveal-side="right">
+            <header class="note-header">
+              <p class="eyebrow">Chapter 01</p>
+              <h3>FF7 Remake Intergrade：UE4SS + 资产提取学习日志</h3>
+              <p>
+                第一章记录 FF7R Intergrade 逆向环境搭建、UE4SS 修复、映射文件生成与资产导出工具链的排障过程。
+              </p>
+            </header>
+
+            <section class="note-chapter">
+              <h4>环境</h4>
+              <ul>
+                <li>游戏：FINAL FANTASY VII REMAKE Intergrade (Steam)</li>
+                <li>引擎：Unreal Engine 4.18（Square Enix 定制版，Clang 编译）</li>
+                <li>游戏路径：<code>E:\SteamLibrary\steamapps\common\FINAL FANTASY VII REMAKE\</code></li>
+                <li>游戏可执行文件：<code>End\Binaries\Win64\ff7remake_.exe</code></li>
+              </ul>
+            </section>
+
+            <section class="note-chapter">
+              <h4>一、UE4SS 安装与修复</h4>
+              <h5>1.1 安装</h5>
+              <p>将 UE4SS v3.0.1 文件复制到游戏 Win64 目录：</p>
+              <pre><code>UE4SS.dll
+dwmapi.dll
+UE4SS-settings.ini
+Mods/  (整个文件夹)</code></pre>
+
+              <h5>1.2 遇到的第一个问题：RenderDoc 冲突</h5>
+              <p>
+                游戏目录下同时存在 <code>dwmapi.dll</code>（UE4SS）和 <code>dxgi.dll</code>（RenderDoc v1.44），
+                两者都是代理 DLL，同时加载导致游戏无法启动。
+              </p>
+              <p><strong>解决：</strong>将 <code>dxgi.dll</code> 重命名为 <code>dxgi.dll.bak</code>。</p>
+
+              <h5>1.3 遇到的第二个问题：GUObjectArray 扫描失败</h5>
+              <p>UE4SS 日志显示：</p>
+              <pre><code>[PS] Found EngineVersion: 4.18
+[PS] Failed to find GUObjectArray: expected at least one value
+[PS] Scan failed</code></pre>
+              <p>
+                <strong>原因：</strong>Square Enix 使用 Clang 编译 FF7R，生成的机器码与 UE4SS 内置的 MSVC 签名不匹配。
+                GUObjectArray 是所有功能的核心数据结构，找不到它就无法使用任何功能。
+              </p>
+              <p><strong>解决：</strong>从 UE4SS 官方 experimental-latest 的 <code>zCustomGameConfigs.zip</code> 中提取 FF7 Remake 专用配置：</p>
+              <div class="note-table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>文件</th>
+                      <th>作用</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><code>UE4SS_Signatures/GUObjectArray.lua</code></td>
+                      <td>Clang 编译适配的 AOB 签名</td>
+                    </tr>
+                    <tr>
+                      <td><code>UE4SS-settings.ini</code></td>
+                      <td>FF7R 专用参数（引擎 4.18，禁用 UObjectArrayCache）</td>
+                    </tr>
+                    <tr>
+                      <td><code>MemberVariableLayout.ini</code></td>
+                      <td>Clang 编译器下的类成员偏移</td>
+                    </tr>
+                    <tr>
+                      <td><code>VTableLayout.ini</code></td>
+                      <td>Clang 编译器下的虚表布局</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <p>关键设置：</p>
+              <pre><code>[EngineVersionOverride]
+MajorVersion = 4
+MinorVersion = 18
+
+[General]
+bUseUObjectArrayCache = false    # 防止启动崩溃
+
+[Debug]
+ConsoleEnabled = 1               # 使用外部控制台
+GuiConsoleEnabled = 0            # 禁用 GUI（避免渲染冲突）</code></pre>
+              <p><code>GUObjectArray.lua</code> 的官方签名：</p>
+              <pre><code>function Register()
+    return "48 8B ?? ?? ?? ?? ?? 4C 8B 04 C8 4D 85 C0 74 07 ?? ?? ?? 0F 94"
+end
+
+function OnMatchFound(matchAddress)
+    local nextInstr = matchAddress + 0x7
+    local offset = matchAddress + 0x3
+    local dataMoved = nextInstr + DerefToInt32(offset) - 0x10
+    return dataMoved
+end</code></pre>
+            </section>
+
+            <section class="note-chapter">
+              <h4>二、生成 .usmap 映射文件</h4>
+              <h5>2.1 快捷键配置</h5>
+              <p>小键盘不可用，将快捷键改为字母键。编辑 <code>Mods/Keybinds/Scripts/main.lua</code>：</p>
+              <pre><code>["DumpUSMAP"] = {["Key"] = Key.M, ["ModifierKeys"] = {ModifierKey.CONTROL}},</code></pre>
+
+              <h5>2.2 生成</h5>
+              <ol>
+                <li>启动游戏到主菜单</li>
+                <li>按 <code>Ctrl + M</code></li>
+                <li>生成文件：<code>Mappings.usmap</code>（1.2 MB）</li>
+              </ol>
+            </section>
+
+            <section class="note-chapter">
+              <h4>三、FModel 资产导出（失败）</h4>
+              <h5>3.1 配置</h5>
+              <ul>
+                <li>UE Version: 4.18</li>
+                <li>AES Key: <code>0x23989837645C9D28BA58072B2076E895B853A7C9E1C5591B814C4FD2A2D7B782</code></li>
+                <li>Mapping File: <code>Mappings.usmap</code></li>
+              </ul>
+
+              <h5>3.2 现象</h5>
+              <p>能浏览资产列表但保存失败：</p>
+              <pre><code>[ERR] Could not save 'PC0000_00_BodyA_B'</code></pre>
+              <p><strong>原因：</strong>FModel 对 FF7R 定制引擎的骨骼网格体导出支持不完整。</p>
+            </section>
+
+            <section class="note-chapter">
+              <h4>四、UModel 资产导出（成功）</h4>
+              <h5>4.1 工具</h5>
+              <p>需要使用 <strong>FF7R Intergrade 专用版 UModel</strong>（标准版无法处理 Square Enix 的定制 LZX 压缩）。</p>
+              <p>文件：<code>umodel_FFVII_intergrade.zip</code>（内含 v6 和 v7_test）。</p>
+
+              <h5>4.2 启动命令</h5>
+              <pre><code>umodel_FFVII_intergrade_v7_test.exe -game=ue4.18 -path="E:\SteamLibrary\steamapps\common\FINAL FANTASY VII REMAKE\End\Content\Paks" -aes=0x23989837645C9D28BA58072B2076E895B853A7C9E1C5591B814C4FD2A2D7B782 -gui</code></pre>
+
+              <h5>4.3 使用</h5>
+              <ol>
+                <li>运行 Launch.bat</li>
+                <li>按 <code>O</code> 打开资源浏览器</li>
+                <li>导航到目标模型（如 <code>Character/Player/PC0000_00_Cloud_Standard/Model</code>）</li>
+                <li>选择模型文件，<code>Ctrl+X</code> 导出，选择 PSK 或 glTF 格式</li>
+              </ol>
+            </section>
+
+            <section class="note-chapter">
+              <h4>五、关键教训</h4>
+              <div class="note-table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>问题</th>
+                      <th>根因</th>
+                      <th>解决思路</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>游戏启动崩溃</td>
+                      <td>多个代理 DLL 冲突</td>
+                      <td>检查 Win64 目录下的非游戏 DLL</td>
+                    </tr>
+                    <tr>
+                      <td>UE4SS 不工作</td>
+                      <td>Clang vs MSVC 签名不匹配</td>
+                      <td>使用官方 CustomGameConfigs</td>
+                    </tr>
+                    <tr>
+                      <td>FModel 无法保存</td>
+                      <td>工具对定制引擎支持不足</td>
+                      <td>换用专用版 UModel</td>
+                    </tr>
+                    <tr>
+                      <td>UModel 解压失败</td>
+                      <td>标准版不支持定制 LZX</td>
+                      <td>使用 Intergrade 专用编译版</td>
+                    </tr>
+                    <tr>
+                      <td>AES 密钥不确定</td>
+                      <td>原版和 Intergrade 密钥相同</td>
+                      <td>直接从官方密钥库获取</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <section class="note-chapter">
+              <h4>六、工具清单</h4>
+              <div class="note-table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>工具</th>
+                      <th>用途</th>
+                      <th>来源</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>UE4SS v3.0.1</td>
+                      <td>Lua 脚本系统 + .usmap 生成</td>
+                      <td>GitHub UE4SS-RE</td>
+                    </tr>
+                    <tr>
+                      <td>FModel</td>
+                      <td>UE 资产浏览</td>
+                      <td>GitHub 4sval</td>
+                    </tr>
+                    <tr>
+                      <td>UModel FF7R 专用版</td>
+                      <td>模型导出</td>
+                      <td>Gildor 论坛 / 百度网盘</td>
+                    </tr>
+                    <tr>
+                      <td>Noesis</td>
+                      <td>模型预览</td>
+                      <td>richwhitehouse.com</td>
+                    </tr>
+                    <tr>
+                      <td>Blender PSK 插件</td>
+                      <td>导入 PSK 模型</td>
+                      <td>GitHub Befzz</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </article>
+        </div>
+      </section>
+
       <section id="contact" class="section contact-section" data-section="contact">
         <div data-reveal data-reveal-side="left">
           <p class="eyebrow">Contact</p>
@@ -238,6 +493,6 @@
       <span>Tian Le. Built with care.</span>
     </footer>
 
-    <script src="script.js?v=20260429ag"></script>
+    <script src="script.js?v=20260521notes2"></script>
   </body>
 </html>
