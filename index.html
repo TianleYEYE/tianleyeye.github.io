@@ -8,7 +8,7 @@
       name="description"
       content="Tian Le 的个人网站，展示个人简介、研究方向、项目和联系方式。"
     />
-    <link rel="stylesheet" href="styles.css?v=20260521notes2" />
+    <link rel="stylesheet" href="styles.css?v=20260601drawcall" />
   </head>
   <body>
     <div class="entry-gate" data-entry-gate>
@@ -224,7 +224,7 @@
             <p class="notes-index-label">当前主题</p>
             <a class="notes-theme-card" href="#ai-reverse-workflow" data-magnetic>
               <span>AI辅助逆向工作流学习</span>
-              <small>Chapter 01 / FF7R UE4SS + 资产提取</small>
+              <small>Chapter 01-02 / UE4SS + PIX Drawcall</small>
             </a>
           </aside>
 
@@ -233,7 +233,7 @@
               <p class="eyebrow">Chapter 01</p>
               <h3>FF7 Remake Intergrade：UE4SS + 资产提取学习日志</h3>
               <p>
-                第一章记录 FF7R Intergrade 逆向环境搭建、UE4SS 修复、映射文件生成与资产导出工具链的排障过程。
+                第一章记录 FF7R Intergrade 逆向环境搭建、UE4SS 修复、映射文件生成与资产导出工具链的排障过程。第二章追加一次从 PIX drawcall 逆向到 Unreal 材质球的落地实验。
               </p>
             </header>
 
@@ -455,6 +455,82 @@ end</code></pre>
                 </table>
               </div>
             </section>
+
+            <section class="note-chapter note-chapter-highlight">
+              <p class="eyebrow">Chapter 02</p>
+              <h4>探索 AI 逆向 Drawcall 到材质球的落地尝试</h4>
+              <p>
+                这次实验从 PIX 捕获和导出的 drawcall 逆向资料出发，让 AI 先阅读 GPU 事件、PSO、资源绑定和反汇编摘要，再把能稳定迁移的材质侧计算落到 Unreal 项目资产中。目标不是完整复刻引擎 GBuffer，而是先验证一条可重复的工作流：从捕获证据到材质图，再到项目内可观察资产。
+              </p>
+
+              <h5>2.1 输入资料</h5>
+              <ul>
+                <li><code>E:\PIX\Cloud_DrawCall_Reverse.md</code>：drawcall 候选、资源绑定和材质族群摘要。</li>
+                <li><code>E:\PIX\Cloud_Draw171_PSO2019_Material_Repro.md</code>：draw 171 / GlobalId 237 / PSO 2019 的落地复现说明。</li>
+                <li><code>E:\PIX\extracted_shaders\pso_2019_ps.asm</code>：像素着色器反汇编。</li>
+                <li><code>E:\PIX\GPU_3_export_cpp</code>：PIX replay 导出的 D3D12 C++ 现场。</li>
+              </ul>
+
+              <h5>2.2 关键判断</h5>
+              <p>
+                draw 171 是 BasePass-like 绘制：PSO 2019 写入多个 render target，深度测试为 Equal 且不写深度，符合 Unreal 风格的 GBuffer 填充。运行时 descriptor table 指向 512 贴图族：<code>t4</code> 为 albedo，<code>t1/t2/t3</code> 参与法线混合，<code>t5/t6</code> 提供 roughness/material scalar，<code>t7</code> 提供 alpha/mask。
+              </p>
+
+              <h5>2.3 落地到 Unreal 材质</h5>
+              <div class="note-table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>PIX 槽位</th>
+                      <th>逆向含义</th>
+                      <th>Unreal 材质输入</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><code>t4</code></td>
+                      <td>颜色 / albedo</td>
+                      <td>Base Color</td>
+                    </tr>
+                    <tr>
+                      <td><code>t1 + t2 + t3</code></td>
+                      <td>RG normal decode、detail/base normal blend</td>
+                      <td>Normal，使用 Custom HLSL 节点</td>
+                    </tr>
+                    <tr>
+                      <td><code>t5 + t6 + t3</code></td>
+                      <td>roughness seed 与重映射</td>
+                      <td>Roughness，按反汇编公式近似</td>
+                    </tr>
+                    <tr>
+                      <td><code>t7</code></td>
+                      <td>alpha / mask</td>
+                      <td>Opacity Mask</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <h5>2.4 项目内生成结果</h5>
+              <ul>
+                <li>生成材质母版：<code>/Game/Mesh/CloudTexture/PIXMaterials/M_Cloud_PIX_Draw171_Repro</code></li>
+                <li>生成材质实例：<code>/Game/Mesh/CloudTexture/PIXMaterials/MI_Cloud_PIX_Draw171_Eye_Repro</code></li>
+                <li>写入网格槽位：<code>/Game/Mesh/PC0000_00</code> 的 <code>PC0000_00_Eye</code> slot 指向新实例。</li>
+                <li>验证记录：<code>Saved/MaterialReverse/cloud_pix_draw171_landing_verification.md</code></li>
+              </ul>
+
+              <h5>2.5 踩坑与修正</h5>
+              <ol>
+                <li>UE 5.5 Python 绑定中没有 <code>unreal.ExpressionInput</code>，Custom 节点输入需要先创建 <code>CustomInput</code>，再通过 <code>MaterialEditingLibrary.connect_material_expressions</code> 按输入名连接。</li>
+                <li>Custom HLSL 代码被内嵌进 UE 生成函数，不能在节点代码里再定义局部函数。原本的 <code>DecodeRGNormal</code> 函数导致 SM6 报错，最终改成纯内联表达式。</li>
+                <li>体积光照、GBuffer packing、RT 输出编码属于场景和渲染管线层，不适合直接塞进普通材质球。本次只落地材质侧可观察近似。</li>
+              </ol>
+
+              <h5>2.6 工作流结论</h5>
+              <p>
+                AI 在这类任务里的价值主要不是“猜材质”，而是快速对齐多源证据：PIX 事件列表、descriptor 最终写入、shader 反汇编、UE 材质 API、编译日志。最有效的节奏是先把 drawcall 拆成可验证的材质片段，再用脚本生成资产，最后用编辑器日志和验证脚本闭环。
+              </p>
+            </section>
           </article>
         </div>
       </section>
@@ -493,6 +569,6 @@ end</code></pre>
       <span>Tian Le. Built with care.</span>
     </footer>
 
-    <script src="script.js?v=20260521notes2"></script>
+    <script src="script.js?v=20260601drawcall"></script>
   </body>
 </html>

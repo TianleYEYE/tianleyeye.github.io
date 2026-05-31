@@ -2308,6 +2308,21 @@ body.theme-night .portrait {
   text-transform: uppercase;
 }
 
+.note-chapter-highlight {
+  margin-top: clamp(1rem, 3vw, 2rem);
+  padding: clamp(1.5rem, 3.4vw, 2.8rem);
+  border: 1px solid color-mix(in srgb, var(--accent) 34%, var(--line));
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--accent) 7%, transparent), transparent 42%),
+    color-mix(in srgb, var(--surface-strong) 46%, transparent);
+  box-shadow: 0 1.4rem 4rem color-mix(in srgb, var(--accent) 9%, transparent);
+}
+
+.note-chapter-highlight > .eyebrow {
+  margin-bottom: 0.75rem;
+  color: var(--accent);
+}
+
 .contact-section {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
