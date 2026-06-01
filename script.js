@@ -493,14 +493,27 @@ const setNotesCollapsed = (isCollapsed) => {
   }
 };
 
+const syncNotesHashState = () => {
+  if (
+    window.location.hash === "#notes" ||
+    window.location.hash === "#ai-reverse-workflow" ||
+    window.location.hash === "#drawcall-material-landing"
+  ) {
+    setNotesCollapsed(false);
+  }
+};
+
 if (notesToggle) {
   notesToggle.addEventListener("click", () => {
     setNotesCollapsed(!notesSection?.classList.contains("is-collapsed"));
   });
 
-  document.querySelectorAll('a[href="#ai-reverse-workflow"], a[href="#notes"]').forEach((link) => {
+  document.querySelectorAll('a[href="#ai-reverse-workflow"], a[href="#notes"], a[href="#drawcall-material-landing"]').forEach((link) => {
     link.addEventListener("click", () => setNotesCollapsed(false));
   });
+
+  syncNotesHashState();
+  window.addEventListener("hashchange", syncNotesHashState);
 }
 
 const setEntryProgress = (progress) => {

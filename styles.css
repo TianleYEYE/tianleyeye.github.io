@@ -2308,6 +2308,41 @@ body.theme-night .portrait {
   text-transform: uppercase;
 }
 
+.note-latest {
+  margin-bottom: clamp(2rem, 5vw, 4rem);
+  padding: clamp(1.35rem, 3vw, 2.4rem) 0;
+  border-top: 1px solid color-mix(in srgb, var(--accent) 34%, var(--line));
+  border-bottom: 1px solid var(--line);
+}
+
+.note-latest h4 {
+  max-width: 13em;
+  margin: 0 0 1rem;
+  font-size: clamp(1.8rem, 4vw, 4.2rem);
+  line-height: 0.98;
+}
+
+.note-latest p:not(.eyebrow) {
+  max-width: 58rem;
+  color: var(--text);
+  font-size: clamp(1rem, 1.24vw, 1.16rem);
+  line-height: 1.82;
+}
+
+.note-latest a {
+  display: inline-flex;
+  margin-top: 0.8rem;
+  padding: 0.45rem 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  color: var(--accent);
+  font-family: var(--font-latin);
+  font-size: 0.78rem;
+  font-weight: 760;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
 .note-chapter-highlight {
   margin-top: clamp(1rem, 3vw, 2rem);
   padding: clamp(1.5rem, 3.4vw, 2.8rem);
