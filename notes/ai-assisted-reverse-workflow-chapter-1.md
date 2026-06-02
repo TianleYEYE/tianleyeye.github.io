@@ -160,3 +160,72 @@ umodel_FFVII_intergrade_v7_test.exe -game=ue4.18 -path="E:\SteamLibrary\steamapp
 | UModel FF7R 专用版 | 模型导出 | Gildor 论坛 / 百度网盘 |
 | Noesis | 模型预览 | richwhitehouse.com |
 | Blender PSK 插件 | 导入 PSK 模型 | GitHub Befzz |
+
+---
+
+## 七、PIX BasePass Shader 计算方案落地（2026-06-03）
+
+这次继续从 `E:\PIX\PIX_Shader_Computation_Reference.md` 出发，不再只复现单个 drawcall，而是尝试把 BasePass shader 计算方案里能稳定观察的部分落到项目材质里。资料中完整路径包含 BasePass、GBuffer 6 个 MRT、Final Albedo / F0、体积间接光等内容；当前阶段只优先实现材质侧可验证项，避免把渲染管线层逻辑强行塞进普通材质球。
+
+### 7.1 可优先落地的计算
+
+| 计算项 | 本次处理 |
+|--------|----------|
+| Base Color / Alpha | 沿用主色贴图和材质参数，作为稳定输入 |
+| World Normal | 修复 `pixNormal` 只计算不输出的问题 |
+| Metallic / Roughness | 从 Packed M/R/V 纹理与参数恢复，避免被默认参数压掉 |
+| Final Albedo / F0 | 做材质侧近似，并通过 Debug View 暴露 |
+| Volume Indirect / 完整 GBuffer Packing | 暂不落地，后续放到渲染管线层处理 |
+
+### 7.2 项目内修改
+
+本次集中修改 Cloud 的 DreamShader 父材质与共享 shader include：
+
+| 文件 | 作用 |
+|------|------|
+| `DShader/Cloud/CloudStandard_PIX.dsm` | 不透明父材质 |
+| `DShader/Cloud/CloudStandard_PIX_Masked.dsm` | 遮罩父材质 |
+| `Shaders/FF7Reverse/Cloud/CloudStandardTextureCommon.ush` | 新增法线强度、金属度、Final Albedo、Debug View helper |
+| `Shaders/FF7Reverse/Cloud/CloudStandardTextures.usf` | 接入 PIX 计算参数与调试输出 |
+
+关键修复包括：
+
+1. 将 detail normal 的混合从固定 `0.0` 改为 `saturate(mask * DetailNormalStrength)`。
+2. 将已经计算出的 `pixNormal` 写入 `Attrs.Normal`。
+3. 新增 `PIXMetallicStrength`、`PIXNormalStrength`、`PIXFinalAlbedoMix`、`PIXDebugView`。
+4. 增加 Final Albedo / F0 的材质侧近似，用于和 PIX 捕获逐步对照。
+
+### 7.3 材质球拆分状态
+
+项目内仍然按身体部位拆成材质实例，便于单独检查 body、eye、face、hair 等区域。12 个 `MI_Cloud_Dream_PIX_PC0000_00_*` 实例共用两个父材质：
+
+| 父材质 | 用途 |
+|--------|------|
+| `M_Cloud_Dream_PIX_Standard` | 不透明部位 |
+| `M_Cloud_Dream_PIX_Masked` | 需要 opacity mask 的部位 |
+
+这样可以保留部位级调试能力，同时避免每个部位都复制一套父材质逻辑。
+
+### 7.4 编译报错与修复
+
+这次两个父材质都遇到过编译报错，主要不是 HLSL 数学本身，而是 UE 材质图生成与纹理采样约束：
+
+| 问题 | 修复 |
+|------|------|
+| DreamShader 中的 `if (PIXDebugView > ...)` 生成 UE `If` 节点后路径不稳定 | 改成 arithmetic debug weights |
+| 部分 M/R/V、Occlusion、DetailNormal 贴图提示 “should be Color” | sampler 改为 `Color` |
+| `PC0000_00_Hair_A` 提示 “should be Masks” | 覆盖遮罩贴图保持 `Masks` |
+| 旧逻辑里 `MetallicScale = 0` 导致金属度被压掉 | 增加 `PIXMetallicStrength` 控制 |
+
+最终使用 DreamShader commandlet 重新生成并加载：
+
+```text
+/Game/Mesh/CloudTexture/DreamShaderMaterials/M_Cloud_Dream_PIX_Standard
+/Game/Mesh/CloudTexture/DreamShaderMaterials/M_Cloud_Dream_PIX_Masked
+```
+
+加载结果为 `0 error(s), 0 warning(s)`。另一次 DataValidation 中的 Skeleton 不兼容问题来自 `Rem_v1_0_2_79.uasset`，与本次 PIX 父材质无关。
+
+### 7.5 本次结论
+
+AI 在这一步的作用更接近“证据整合 + 编译日志驱动排障”：先把 PIX 资料拆成可验证的材质计算，再落到已有 DreamShader 父材质，最后根据 Unreal 的真实编译错误修正 sampler、节点分支和参数默认值。下一步如果继续深入，应把体积间接光、完整 GBuffer packing 和 BasePass 输出编码放到渲染管线层，而不是继续扩大普通材质球的职责。

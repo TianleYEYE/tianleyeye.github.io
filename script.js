@@ -497,7 +497,8 @@ const syncNotesHashState = () => {
   if (
     window.location.hash === "#notes" ||
     window.location.hash === "#ai-reverse-workflow" ||
-    window.location.hash === "#drawcall-material-landing"
+    window.location.hash === "#drawcall-material-landing" ||
+    window.location.hash === "#shader-computation-material-fix"
   ) {
     setNotesCollapsed(false);
   }
@@ -508,7 +509,7 @@ if (notesToggle) {
     setNotesCollapsed(!notesSection?.classList.contains("is-collapsed"));
   });
 
-  document.querySelectorAll('a[href="#ai-reverse-workflow"], a[href="#notes"], a[href="#drawcall-material-landing"]').forEach((link) => {
+  document.querySelectorAll('a[href="#ai-reverse-workflow"], a[href="#notes"], a[href="#drawcall-material-landing"], a[href="#shader-computation-material-fix"]').forEach((link) => {
     link.addEventListener("click", () => setNotesCollapsed(false));
   });
 

@@ -8,7 +8,7 @@
       name="description"
       content="Tian Le 的个人网站，展示个人简介、研究方向、项目和联系方式。"
     />
-    <link rel="stylesheet" href="styles.css?v=20260601drawcall" />
+    <link rel="stylesheet" href="styles.css?v=20260603shaderfix" />
   </head>
   <body>
     <div class="entry-gate" data-entry-gate>
@@ -224,7 +224,7 @@
             <p class="notes-index-label">当前主题</p>
             <a class="notes-theme-card" href="#ai-reverse-workflow" data-magnetic>
               <span>AI辅助逆向工作流学习</span>
-              <small>Chapter 01-02 / UE4SS + PIX Drawcall</small>
+              <small>Chapter 01-03 / UE4SS + PIX Shader</small>
             </a>
           </aside>
 
@@ -233,17 +233,17 @@
               <p class="eyebrow">Chapter 01</p>
               <h3>FF7 Remake Intergrade：UE4SS + 资产提取学习日志</h3>
               <p>
-                第一章记录 FF7R Intergrade 逆向环境搭建、UE4SS 修复、映射文件生成与资产导出工具链的排障过程。第二章追加一次从 PIX drawcall 逆向到 Unreal 材质球的落地实验。
+                第一章记录 FF7R Intergrade 逆向环境搭建、UE4SS 修复、映射文件生成与资产导出工具链的排障过程。第二章追加一次从 PIX drawcall 逆向到 Unreal 材质球的落地实验。第三章继续记录 PIX BasePass shader 计算方案落地、DreamShader 父材质修复和编译排障。
               </p>
             </header>
 
-            <section class="note-latest" aria-labelledby="drawcall-material-latest-title">
-              <p class="eyebrow">Latest / Chapter 02</p>
-              <h4 id="drawcall-material-latest-title">探索 AI 逆向 Drawcall 到材质球的落地尝试</h4>
+            <section class="note-latest" aria-labelledby="shader-computation-latest-title">
+              <p class="eyebrow">Latest / Chapter 03</p>
+              <h4 id="shader-computation-latest-title">PIX BasePass 计算方案落地与材质编译修复</h4>
               <p>
-                从 PIX draw 171 / PSO 2019 的资源绑定和像素着色器反汇编出发，提取 `t4` 颜色、`t1/t2/t3` 法线混合、`t5/t6/t3` 粗糙度重映射、`t7` 遮罩，并通过 UnrealBridge 生成 Unreal 材质母版、实例和网格槽位绑定。
+                这次从 <code>PIX_Shader_Computation_Reference.md</code> 的 BasePass / GBuffer 计算拆解出发，把法线强度、金属度、Final Albedo 和 Debug View 先落到 <code>M_Cloud_Dream_PIX_Standard</code> 与 <code>M_Cloud_Dream_PIX_Masked</code> 两个父材质，再根据编译日志修正 sampler 类型和 DreamShader 条件分支。
               </p>
-              <a href="#drawcall-material-landing" data-magnetic>查看完整工作日志</a>
+              <a href="#shader-computation-material-fix" data-magnetic>查看本次更新</a>
             </section>
 
             <section class="note-chapter">
@@ -540,6 +540,42 @@ end</code></pre>
                 AI 在这类任务里的价值主要不是“猜材质”，而是快速对齐多源证据：PIX 事件列表、descriptor 最终写入、shader 反汇编、UE 材质 API、编译日志。最有效的节奏是先把 drawcall 拆成可验证的材质片段，再用脚本生成资产，最后用编辑器日志和验证脚本闭环。
               </p>
             </section>
+
+            <section id="shader-computation-material-fix" class="note-chapter note-chapter-highlight">
+              <p class="eyebrow">Chapter 03</p>
+              <h4>PIX BasePass 计算方案落地与材质编译修复</h4>
+              <p>
+                这次的目标是把现有逆向资料里更完整的 shader 计算方案真正接进项目，而不是只停留在单个 drawcall 复现。参考资料把 BasePass 输出拆成了 6 个 GBuffer MRT，并给出当前可优先还原的部分：base color / alpha、world normal、metallic / roughness、Final Albedo / F0。体积间接光和完整 GBuffer packing 暂时保留为后续渲染管线层任务。
+              </p>
+
+              <h5>3.1 从资料到可落地项</h5>
+              <ul>
+                <li><code>baseColor</code> 继续来自主色贴图与材质参数，作为当前最稳定的可观察输入。</li>
+                <li><code>world normal</code> 优先修复，因为原材质已经计算 <code>pixNormal</code>，但没有真正输出到 <code>Attrs.Normal</code>。</li>
+                <li><code>metallic</code> 从 Packed M/R/V 纹理与参数恢复，避免被默认 <code>MetallicScale = 0</code> 直接压掉。</li>
+                <li><code>Final Albedo / F0</code> 先做材质侧近似，并通过 Debug View 暴露出来，方便逐步对照 PIX 捕获。</li>
+              </ul>
+
+              <h5>3.2 落到 DreamShader 父材质</h5>
+              <p>
+                本次主要修改 <code>DShader/Cloud/CloudStandard_PIX.dsm</code>、<code>DShader/Cloud/CloudStandard_PIX_Masked.dsm</code>、<code>CloudStandardTextureCommon.ush</code> 和 <code>CloudStandardTextures.usf</code>。关键修复是把 detail normal 的混合从固定 <code>0.0</code> 改成遮罩与强度控制，把 <code>pixNormal</code> 输出到材质属性，并新增 <code>PIXMetallicStrength</code>、<code>PIXNormalStrength</code>、<code>PIXFinalAlbedoMix</code>、<code>PIXDebugView</code> 这些调试参数。
+              </p>
+              <p>
+                材质实例仍然按身体部位拆分，12 个 <code>MI_Cloud_Dream_PIX_PC0000_00_*</code> 实例共用两个父材质：不透明部位走 <code>M_Cloud_Dream_PIX_Standard</code>，需要遮罩的头发等部位走 <code>M_Cloud_Dream_PIX_Masked</code>。这样保留了按 body / eye / face / hair 分槽检查效果的能力，同时避免为每个部位复制一套父材质逻辑。
+              </p>
+
+              <h5>3.3 编译报错修复</h5>
+              <ul>
+                <li>DreamShader 里的 <code>if (PIXDebugView &gt; ...)</code> 会生成 UE 材质 <code>If</code> 节点，部分输入路径不稳定，改成 arithmetic weights 后通过编译。</li>
+                <li><code>PackedMRVTex</code>、<code>OcclusionTex</code>、部分 <code>DetailNormalTex</code> 的 sampler 类型需要跟当前纹理压缩状态一致。日志提示 “should be Color” 的改为 <code>Color</code>，提示 “should be Masks” 的保留 <code>Masks</code>。</li>
+                <li><code>PC0000_00_Hair_A</code> 这类覆盖遮罩贴图最终应按 Masks 采样，而不是跟普通颜色贴图混用。</li>
+              </ul>
+
+              <h5>3.4 验证结论</h5>
+              <p>
+                重新运行 DreamShader commandlet 后，<code>M_Cloud_Dream_PIX_Standard</code> 与 <code>M_Cloud_Dream_PIX_Masked</code> 都能加载，材质编译日志为 <code>0 error(s), 0 warning(s)</code>。另一次 DataValidation 中出现的 Skeleton 不兼容错误来自 <code>Rem_v1_0_2_79.uasset</code>，与本次两个 PIX 父材质无关。
+              </p>
+            </section>
           </article>
         </div>
       </section>
@@ -578,6 +614,6 @@ end</code></pre>
       <span>Tian Le. Built with care.</span>
     </footer>
 
-    <script src="script.js?v=20260601drawcall"></script>
+    <script src="script.js?v=20260603shaderfix"></script>
   </body>
 </html>
