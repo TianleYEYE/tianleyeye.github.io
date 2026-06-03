@@ -50,6 +50,12 @@ let entryLastTime = 0;
 const entryHoldDuration = 1200;
 const entryReleaseDuration = 700;
 const entryMeterLength = 314.16;
+const notesHashTargets = new Set([
+  "#notes",
+  "#ai-reverse-workflow",
+  "#drawcall-material-landing",
+  "#shader-computation-material-fix",
+]);
 
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 const smoothstep = (start, end, value) => {
@@ -472,7 +478,10 @@ if (isSafari) {
   document.documentElement.classList.add("is-safari");
 }
 
-if (entryGate && entryHold) {
+if (entryGate && entryHold && notesHashTargets.has(window.location.hash)) {
+  entryIsComplete = true;
+  entryGate.remove();
+} else if (entryGate && entryHold) {
   document.documentElement.classList.add("is-entry-locked");
 }
 
@@ -494,12 +503,7 @@ const setNotesCollapsed = (isCollapsed) => {
 };
 
 const syncNotesHashState = () => {
-  if (
-    window.location.hash === "#notes" ||
-    window.location.hash === "#ai-reverse-workflow" ||
-    window.location.hash === "#drawcall-material-landing" ||
-    window.location.hash === "#shader-computation-material-fix"
-  ) {
+  if (notesHashTargets.has(window.location.hash)) {
     setNotesCollapsed(false);
   }
 };
