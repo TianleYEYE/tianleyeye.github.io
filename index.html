@@ -9,6 +9,14 @@
       content="Tian Le 的个人网站，展示个人简介、研究方向、项目和联系方式。"
     />
     <link rel="stylesheet" href="styles.css?v=20260603notesvisible" />
+    <style>
+      .notes-section .note-article {
+        display: block;
+        opacity: 1;
+        filter: none;
+        transform: none;
+      }
+    </style>
   </head>
   <body>
     <div class="entry-gate" data-entry-gate>
@@ -207,7 +215,7 @@
       </div>
 
       <section id="notes" class="section notes-section" data-section="notes">
-        <div class="section-heading" data-reveal data-reveal-side="left">
+        <div class="section-heading">
           <p class="eyebrow">Notes</p>
           <p class="section-note">A reading room for technical logs, reverse engineering experiments, and AI-assisted workflows.</p>
           <h2>笔记展示区</h2>
@@ -220,7 +228,7 @@
         </div>
 
         <div class="notes-layout">
-          <aside class="notes-index" data-reveal data-reveal-side="left" aria-label="笔记主题">
+          <aside class="notes-index" aria-label="笔记主题">
             <p class="notes-index-label">当前主题</p>
             <a class="notes-theme-card" href="#ai-reverse-workflow" data-magnetic>
               <span>AI辅助逆向工作流学习</span>
