@@ -2181,6 +2181,12 @@ body.theme-night .portrait {
   border-top: 1px solid var(--line);
 }
 
+.note-article[data-reveal] {
+  opacity: 1;
+  filter: none;
+  transform: none;
+}
+
 .note-header {
   max-width: 60rem;
   margin-bottom: clamp(2rem, 5vw, 4rem);
