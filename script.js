@@ -509,6 +509,8 @@ const syncNotesHashState = () => {
 };
 
 if (notesToggle) {
+  setNotesCollapsed(true);
+
   notesToggle.addEventListener("click", () => {
     setNotesCollapsed(!notesSection?.classList.contains("is-collapsed"));
   });
@@ -620,147 +622,6 @@ if (entryHold) {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       stopEntryHold();
-    }
-  });
-}
-
-const portfolioReveal = document.querySelector("[data-portfolio-reveal]");
-const portfolioInner = document.querySelector("[data-portfolio-inner]");
-const portfolioVideo = document.querySelector(".portfolio-video");
-const portfolioSnapTargetProgress = 0.72;
-
-if (portfolioReveal && portfolioInner) {
-  const clothDisplacement = document.querySelector("#cloth-warp-filter feDisplacementMap");
-  const portfolioClipStart = [
-    [6.5, 17],
-    [18, 13],
-    [47, 22],
-    [73, 11],
-    [88, 4.5],
-    [98.5, 6],
-    [100, 9.5],
-    [94.5, 31],
-    [85, 52],
-    [72, 90],
-    [66, 94],
-    [49, 99],
-    [22, 86],
-    [3, 82],
-    [0, 60],
-    [4.5, 43],
-    [6.5, 31],
-  ];
-  const portfolioClipEnd = [
-    [0, 0],
-    [16.5, 0],
-    [33, 0],
-    [49.5, 0],
-    [66, 0],
-    [82.5, 0],
-    [100, 0],
-    [100, 16.5],
-    [100, 33],
-    [100, 49.5],
-    [100, 66],
-    [100, 82.5],
-    [100, 100],
-    [66, 100],
-    [33, 100],
-    [0, 100],
-    [0, 50],
-  ];
-
-  const formatPortfolioClip = (progress) => {
-    const points = portfolioClipStart.map(([startX, startY], index) => {
-      const [endX, endY] = portfolioClipEnd[index];
-      return `${mix(startX, endX, progress).toFixed(2)}% ${mix(startY, endY, progress).toFixed(2)}%`;
-    });
-
-    return `polygon(${points.join(", ")})`;
-  };
-
-  const updatePortfolioReveal = () => {
-    const rect = portfolioReveal.getBoundingClientRect();
-    const viewportH = window.innerHeight;
-    const revealStart = viewportH * 0.9;
-    const revealEnd = viewportH * 0.24;
-    const progress = clamp((revealStart - rect.top) / Math.max(1, revealStart - revealEnd));
-
-    const easedEntry = smoothstep(0, 0.16, progress);
-    const easedScale = smoothstep(0.03, portfolioSnapTargetProgress, progress);
-    const easedCenter = smoothstep(0.08, portfolioSnapTargetProgress, progress);
-    const easedSettle = smoothstep(0.52, portfolioSnapTargetProgress, progress);
-    const easedRectangle = smoothstep(0.42, 0.76, progress);
-
-    const clothEnergy = 1 - easedSettle;
-
-    const scale = mix(0.42, 0.96, easedScale);
-    const x = mix(-38, 1, easedCenter);
-    const y = mix(8, 0, easedCenter);
-    const rotate = mix(-8, 0, easedRectangle);
-    const skew = mix(-5, 0, easedRectangle);
-    const opacity = mix(0.18, 1, easedEntry);
-
-    const displacementScale = (1 - easedRectangle) * clothEnergy * clothEnergy * 68;
-
-    if (clothDisplacement) {
-      clothDisplacement.setAttribute("scale", displacementScale.toFixed(1));
-    }
-
-    portfolioInner.style.setProperty("--reveal-scale", scale.toFixed(4));
-    portfolioInner.style.setProperty("--reveal-x", `${x.toFixed(2)}vw`);
-    portfolioInner.style.setProperty("--reveal-y", `${y.toFixed(2)}vh`);
-    portfolioInner.style.setProperty("--reveal-rotate", `${rotate.toFixed(2)}deg`);
-    portfolioInner.style.setProperty("--reveal-skew", `${skew.toFixed(2)}deg`);
-    portfolioInner.style.setProperty("--reveal-opacity", opacity.toFixed(4));
-    portfolioInner.style.clipPath = formatPortfolioClip(easedRectangle);
-
-    if (easedRectangle >= 0.995) {
-      portfolioInner.classList.add("is-full");
-    } else {
-      portfolioInner.classList.remove("is-full");
-    }
-  };
-
-  window.addEventListener("scroll", () => {
-    updatePortfolioReveal();
-  }, { passive: true });
-  window.addEventListener("resize", updatePortfolioReveal);
-  updatePortfolioReveal();
-}
-
-if (portfolioInner && portfolioVideo) {
-  const playPortfolioFullscreen = async () => {
-    try {
-      portfolioVideo.controls = true;
-      await portfolioVideo.play();
-
-      const fullscreenTarget = portfolioVideo.requestFullscreen ? portfolioVideo : portfolioInner;
-      await fullscreenTarget.requestFullscreen?.();
-    } catch {
-      portfolioVideo.controls = true;
-    }
-  };
-
-  portfolioInner.addEventListener("pointerenter", () => {
-    cursorRing?.classList.add("is-active", "is-portfolio");
-  });
-
-  portfolioInner.addEventListener("pointerleave", () => {
-    cursorRing?.classList.remove("is-active", "is-portfolio");
-  });
-
-  portfolioInner.addEventListener("click", playPortfolioFullscreen);
-  portfolioInner.addEventListener("keydown", (event) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      playPortfolioFullscreen();
-    }
-  });
-
-  document.addEventListener("fullscreenchange", () => {
-    if (!document.fullscreenElement) {
-      portfolioVideo.controls = false;
     }
   });
 }

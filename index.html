@@ -103,12 +103,12 @@
             <span class="glitch-title title-name" data-text="TIAN LE">TIAN LE</span>
           </h1>
           <p class="lead">
-            这里是一个简洁的个人主页，用来记录我的学习、项目、研究兴趣和最近在做的事情。
+            记录创意前端、游戏技术研究、Shader / PIX 分析，以及 AI 辅助工作流实践。
           </p>
-          <p class="lead-note">A compact personal archive for learning, experiments, research notes, and small digital works.</p>
+          <p class="lead-note">Creative front-end / game tech research / AI-assisted production notes.</p>
           <div class="actions">
             <a class="button primary" href="#work" data-magnetic>查看项目</a>
-            <a class="button secondary" href="#contact" data-magnetic>联系我</a>
+            <a class="button secondary" href="#notes" data-magnetic>最新笔记</a>
           </div>
         </div>
         <div class="portrait" data-tilt data-reveal data-reveal-side="right" aria-label="Tian Le 的个人头像">
@@ -121,9 +121,9 @@
           <span>这个人有点 AI</span>
         </div>
         <aside class="hero-meta" aria-label="Personal site metadata">
-          <span>Based in China</span>
           <span>Creative front-end</span>
-          <span>Learning in public</span>
+          <span>Unreal / PIX notes</span>
+          <span>VR validation demos</span>
         </aside>
       </section>
 
@@ -143,14 +143,14 @@
       <section id="about" class="section" data-section="about">
         <div class="section-heading" data-reveal data-reveal-side="left">
           <p class="eyebrow">About</p>
-          <p class="section-note">I care about durable craft, readable systems, and the quiet accumulation of ideas.</p>
+          <p class="section-note">Focused on visual interfaces, game-tech experiments, and readable technical logs.</p>
           <h2>关于我</h2>
         </div>
         <div class="about-grid" data-reveal data-reveal-side="right">
           <ul class="quick-facts" aria-label="个人方向">
-            <li>学习笔记</li>
-            <li>项目实践</li>
-            <li>研究探索</li>
+            <li>创意前端界面</li>
+            <li>游戏技术研究</li>
+            <li>AI 辅助工作流</li>
           </ul>
         </div>
       </section>
@@ -158,7 +158,7 @@
       <section id="work" class="section" data-section="work">
         <div class="section-heading" data-reveal data-reveal-side="right">
           <p class="eyebrow">Work</p>
-          <p class="section-note">Selected directions, prototypes, and notes that can grow into a fuller portfolio.</p>
+          <p class="section-note">Projects and research logs arranged for quick scanning before deep reading.</p>
           <h2>项目与记录</h2>
         </div>
         <div class="project-grid">
@@ -170,29 +170,53 @@
                 rel="noreferrer"
                 data-magnetic
               >
-                个人主页
+                个人网站系统
               </a>
             </h3>
-            <p>一个干净、轻量、适合 GitHub Pages 托管的个人网站。</p>
-            <span>Website</span>
+            <p>以 GitHub Pages 托管的个人索引，整合视觉实验、项目展示、技术笔记和联系入口。</p>
+            <span>Website / UI</span>
           </article>
           <article class="project-card" data-tilt data-reveal data-reveal-side="right">
-            <h3><a href="#notes" data-magnetic>学习笔记</a></h3>
-            <p>整理课程、阅读、实验和技术实践中的关键收获。</p>
-            <span>Notes</span>
+            <h3><a href="#notes" data-magnetic>FF7R 技术日志</a></h3>
+            <p>记录 UE4SS 配置、资产导出、PIX drawcall 分析到材质还原的排障过程。</p>
+            <span>Unreal / PIX</span>
           </article>
           <article class="project-card project-card-expandable" data-tilt data-reveal data-reveal-side="right">
-            <h3>作品集</h3>
-            <p>用于展示之后完成的应用、研究、设计或开源项目。</p>
-            <span>Portfolio</span>
+            <h3><a href="#vr-validation" data-magnetic>VR 验证视频</a></h3>
+            <p>临时放置一次 VR 场景验证录屏，用于后续补充交互目标、测试结论和实现说明。</p>
+            <span>VR / Demo</span>
           </article>
         </div>
 
-        <div class="portfolio-reveal" data-portfolio-reveal>
-          <div class="portfolio-reveal-sticky" data-portfolio-sticky>
-            <div class="portfolio-reveal-viewport" data-portfolio-viewport>
-              <div class="portfolio-reveal-inner" data-portfolio-inner role="button" tabindex="0" aria-label="全屏播放作品集视频">
-                <video class="portfolio-video" autoplay muted loop playsinline preload="metadata" aria-label="Portfolio video">
+        <div id="vr-validation" class="showcase">
+          <div class="showcase-heading">
+            <p class="eyebrow">Showcase</p>
+            <h3>作品视频</h3>
+            <p>用于展示可播放的作品预览、验证录屏和后续项目演示。</p>
+          </div>
+
+          <div class="showcase-list">
+            <div class="showcase-item">
+              <div class="showcase-copy">
+                <span class="showcase-number">01</span>
+                <h4>VR Validation</h4>
+                <p>VR 场景验证录屏，用于观察空间尺度、交互反馈和运行效果。</p>
+              </div>
+              <div class="showcase-media">
+                <video controls autoplay muted loop playsinline preload="metadata" aria-label="VR 验证作品视频">
+                  <source src="assets/portfolio/vr-validation.mp4" type="video/mp4" />
+                </video>
+              </div>
+            </div>
+
+            <div class="showcase-item">
+              <div class="showcase-copy">
+                <span class="showcase-number">02</span>
+                <h4>Portfolio Preview</h4>
+                <p>视觉作品集动态预览，用于展示当前界面实验与作品包装方向。</p>
+              </div>
+              <div class="showcase-media">
+                <video controls autoplay muted loop playsinline preload="metadata" aria-label="Portfolio preview video">
                   <source src="assets/portfolio/portfolio.mp4" type="video/mp4" />
                 </video>
               </div>
